@@ -2,61 +2,53 @@
 // UTC offsets are in hours (e.g., -5 for EST, +5.5 for IST)
 
 export const teammates = [
-  {
-    id: 1,
-    name: "Gambloor",
-    role: "COO",
-    timezone: "New York",
-    utcOffset: -4, // EST
-    avatar: "/assets/avatars/gambloor.jpg",
-    workingHours: {
-      start: "08:00",
-      end: "22:00"
-    }
-  },
-  {
-    id: 2,
-    name: "Redux",
-    role: "Operations & PM", 
-    timezone: "Zurich",
-    utcOffset: 2, // IST
-    avatar: "/assets/avatars/redux.jpg",
-    workingHours: {
-      start: "08:00",
-      end: "22:00"
-    }
-  },
-  {
-    id: 3,
-    name: "Boom",
-    role: "BD",
-    timezone: "Hawaii",
-    utcOffset: -10, // GMT
-    avatar: "/assets/avatars/boom.jpg",
-    workingHours: {
-      start: "08:00",
-      end: "22:00"
-    }
-  },
+  // Founder
   {
     id: 4,
     name: "Reethmos",
     role: "Founder",
     timezone: "Dubai",
-    utcOffset: 4, // JST
+    utcOffset: 4,
     avatar: "/assets/avatars/reethmos.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
     }
   },
+  // COO
   {
-    id: 5,
-    name: "Trancey",
-    role: "BD",
-    timezone: "Los Angeles",
-    utcOffset: -7, // PST
-    avatar: "/assets/avatars/trancey.jpg",
+    id: 1,
+    name: "Gambloor",
+    role: "COO",
+    timezone: "New York",
+    utcOffset: -4,
+    avatar: "/assets/avatars/gambloor.jpg",
+    workingHours: {
+      start: "08:00",
+      end: "22:00"
+    }
+  },
+  // PM
+  {
+    id: 2,
+    name: "Redux",
+    role: "Operations & PM", 
+    timezone: "Zurich",
+    utcOffset: 2,
+    avatar: "/assets/avatars/redux.jpg",
+    workingHours: {
+      start: "08:00",
+      end: "22:00"
+    }
+  },
+  // Art Director
+  {
+    id: 11,
+    name: "Mark",
+    role: "Art Director",
+    timezone: "France",
+    utcOffset: +2,
+    avatar: "/assets/avatars/mark.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
@@ -67,8 +59,33 @@ export const teammates = [
     name: "Tejma",
     role: "UI/UX Designer",
     timezone: "UK",
-    utcOffset: 0, // AEDT
+    utcOffset: 0,
     avatar: "/assets/avatars/tejma.jpg",
+    workingHours: {
+      start: "08:00",
+      end: "22:00"
+    }
+  },
+  // BD
+  {
+    id: 3,
+    name: "Boom",
+    role: "BD",
+    timezone: "Hawaii",
+    utcOffset: -10,
+    avatar: "/assets/avatars/boom.jpg",
+    workingHours: {
+      start: "08:00",
+      end: "22:00"
+    }
+  },
+  {
+    id: 5,
+    name: "Trancey",
+    role: "BD",
+    timezone: "Los Angeles",
+    utcOffset: -7,
+    avatar: "/assets/avatars/trancey.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
@@ -79,32 +96,8 @@ export const teammates = [
     name: "Gabi",
     role: "BD",
     timezone: "Argentina",
-    utcOffset: -3, // AEDT
+    utcOffset: -3,
     avatar: "/assets/avatars/gabi.jpg",
-    workingHours: {
-      start: "08:00",
-      end: "22:00"
-    }
-  },
-  {
-    id: 8,
-    name: "Keats",
-    role: "Support",
-    timezone: "New York",
-    utcOffset: -4, // AEDT
-    avatar: "/assets/avatars/keats.jpg",
-    workingHours: {
-      start: "08:00",
-      end: "22:00"
-    }
-  },
-  {
-    id: 9,
-    name: "Silo",
-    role: "PR",
-    timezone: "America",
-    utcOffset: -5, // AEDT
-    avatar: "/assets/avatars/silo.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
@@ -115,32 +108,8 @@ export const teammates = [
     name: "Dust",
     role: "BD",
     timezone: "Bulgaria",
-    utcOffset: +3, // AEDT
+    utcOffset: +3,
     avatar: "/assets/avatars/dust.jpg",
-    workingHours: {
-      start: "08:00",
-      end: "22:00"
-    }
-  },
-  {
-    id: 11,
-    name: "Mark",
-    role: "Art Director",
-    timezone: "France",
-    utcOffset: +2, // AEDT
-    avatar: "/assets/avatars/mark.jpg",
-    workingHours: {
-      start: "08:00",
-      end: "22:00"
-    }
-  },
-  {
-    id: 12,
-    name: "Cali",
-    role: "Support",
-    timezone: "Poland",
-    utcOffset: +2, // PST
-    avatar: "/assets/avatars/cali.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
@@ -151,8 +120,21 @@ export const teammates = [
     name: "Jason",
     role: "BD",
     timezone: "New York",
-    utcOffset: -4, // CST
+    utcOffset: -4,
     avatar: "/assets/avatars/jason.jpg",
+    workingHours: {
+      start: "08:00",
+      end: "22:00"
+    }
+  },
+  // PR
+  {
+    id: 9,
+    name: "Silo",
+    role: "PR",
+    timezone: "America",
+    utcOffset: -5,
+    avatar: "/assets/avatars/silo.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
@@ -163,8 +145,33 @@ export const teammates = [
     name: "Shyla",
     role: "PR",
     timezone: "UK",
-    utcOffset: 0, // AEDT
+    utcOffset: 0,
     avatar: "/assets/avatars/shyla.jpg",
+    workingHours: {
+      start: "08:00",
+      end: "22:00"
+    }
+  },
+  // Support
+  {
+    id: 8,
+    name: "Keats",
+    role: "Support",
+    timezone: "New York",
+    utcOffset: -4,
+    avatar: "/assets/avatars/keats.jpg",
+    workingHours: {
+      start: "08:00",
+      end: "22:00"
+    }
+  },
+  {
+    id: 12,
+    name: "Cali",
+    role: "Support",
+    timezone: "Poland",
+    utcOffset: +2,
+    avatar: "/assets/avatars/cali.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
