@@ -7,8 +7,8 @@ export const teammates = [
     id: 4,
     name: "Reethmos",
     role: "Founder",
-    timezone: "Dubai",
-    utcOffset: 4,
+    timezone: "Asia/Dubai",
+    timezoneDisplay: "Dubai",
     avatar: "/assets/avatars/reethmos.jpg",
     workingHours: {
       start: "08:00",
@@ -20,8 +20,8 @@ export const teammates = [
     id: 1,
     name: "Gambloor",
     role: "COO",
-    timezone: "New York",
-    utcOffset: -4,
+    timezone: "America/New_York",
+    timezoneDisplay: "New York",
     avatar: "/assets/avatars/gambloor.jpg",
     workingHours: {
       start: "08:00",
@@ -33,8 +33,8 @@ export const teammates = [
     id: 2,
     name: "Redux",
     role: "Operations & PM", 
-    timezone: "Zurich",
-    utcOffset: 2,
+    timezone: "Europe/Zurich",
+    timezoneDisplay: "Zurich",
     avatar: "/assets/avatars/redux.jpg",
     workingHours: {
       start: "08:00",
@@ -46,8 +46,8 @@ export const teammates = [
     id: 11,
     name: "Mark",
     role: "Art Director",
-    timezone: "France",
-    utcOffset: +2,
+    timezone: "Europe/Paris",
+    timezoneDisplay: "France",
     avatar: "/assets/avatars/mark.jpg",
     workingHours: {
       start: "08:00",
@@ -58,8 +58,8 @@ export const teammates = [
     id: 6,
     name: "Tejma",
     role: "UI/UX Designer",
-    timezone: "UK",
-    utcOffset: 0,
+    timezone: "Europe/London",
+    timezoneDisplay: "UK",
     avatar: "/assets/avatars/tejma.jpg",
     workingHours: {
       start: "08:00",
@@ -71,8 +71,8 @@ export const teammates = [
     id: 3,
     name: "Boom",
     role: "BD",
-    timezone: "Hawaii",
-    utcOffset: -10,
+    timezone: "Pacific/Honolulu",
+    timezoneDisplay: "Hawaii",
     avatar: "/assets/avatars/boom.jpg",
     workingHours: {
       start: "08:00",
@@ -83,8 +83,8 @@ export const teammates = [
     id: 5,
     name: "Trancey",
     role: "BD",
-    timezone: "Los Angeles",
-    utcOffset: -7,
+    timezone: "America/Los_Angeles",
+    timezoneDisplay: "Los Angeles",
     avatar: "/assets/avatars/trancey.jpg",
     workingHours: {
       start: "08:00",
@@ -95,8 +95,8 @@ export const teammates = [
     id: 7,
     name: "Gabi",
     role: "BD",
-    timezone: "Argentina",
-    utcOffset: -3,
+    timezone: "America/Argentina/Buenos_Aires",
+    timezoneDisplay: "Argentina",
     avatar: "/assets/avatars/gabi.jpg",
     workingHours: {
       start: "08:00",
@@ -107,8 +107,8 @@ export const teammates = [
     id: 10,
     name: "Dust",
     role: "BD",
-    timezone: "Bulgaria",
-    utcOffset: +3,
+    timezone: "Europe/Sofia",
+    timezoneDisplay: "Bulgaria",
     avatar: "/assets/avatars/dust.jpg",
     workingHours: {
       start: "08:00",
@@ -119,8 +119,8 @@ export const teammates = [
     id: 13,
     name: "Jason",
     role: "BD",
-    timezone: "New York",
-    utcOffset: -4,
+    timezone: "America/New_York",
+    timezoneDisplay: "New York",
     avatar: "/assets/avatars/jason.jpg",
     workingHours: {
       start: "08:00",
@@ -132,8 +132,8 @@ export const teammates = [
     id: 9,
     name: "Silo",
     role: "PR",
-    timezone: "America",
-    utcOffset: -5,
+    timezone: "America/Chicago",
+    timezoneDisplay: "America",
     avatar: "/assets/avatars/silo.jpg",
     workingHours: {
       start: "08:00",
@@ -144,8 +144,8 @@ export const teammates = [
     id: 14,
     name: "Shyla",
     role: "PR",
-    timezone: "UK",
-    utcOffset: 0,
+    timezone: "Europe/London",
+    timezoneDisplay: "UK",
     avatar: "/assets/avatars/shyla.jpg",
     workingHours: {
       start: "08:00",
@@ -157,8 +157,8 @@ export const teammates = [
     id: 8,
     name: "Keats",
     role: "Support",
-    timezone: "New York",
-    utcOffset: -4,
+    timezone: "America/New_York",
+    timezoneDisplay: "New York",
     avatar: "/assets/avatars/keats.jpg",
     workingHours: {
       start: "08:00",
@@ -169,8 +169,8 @@ export const teammates = [
     id: 12,
     name: "Cali",
     role: "Support",
-    timezone: "Poland",
-    utcOffset: +2,
+    timezone: "Europe/Warsaw",
+    timezoneDisplay: "Poland",
     avatar: "/assets/avatars/cali.jpg",
     workingHours: {
       start: "08:00",
@@ -179,12 +179,31 @@ export const teammates = [
   }
 ];
 
-// Utility functions for timezone handling
+// Utility functions for timezone handling with automatic DST support
 export const getTeammateLocalTime = (teammate) => {
   const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const teammateTime = new Date(utc + (teammate.utcOffset * 3600000));
-  return teammateTime;
+  // Use Intl.DateTimeFormat to get accurate time in teammate's timezone
+  // This automatically handles daylight saving time transitions
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: teammate.timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const year = parseInt(parts.find(part => part.type === 'year').value);
+  const month = parseInt(parts.find(part => part.type === 'month').value) - 1; // Month is 0-indexed
+  const day = parseInt(parts.find(part => part.type === 'day').value);
+  const hour = parseInt(parts.find(part => part.type === 'hour').value);
+  const minute = parseInt(parts.find(part => part.type === 'minute').value);
+  const second = parseInt(parts.find(part => part.type === 'second').value);
+  
+  return new Date(year, month, day, hour, minute, second);
 };
 
 export const formatTime = (date) => {
@@ -214,16 +233,26 @@ export const getOnlineStatus = (teammate) => {
   return isWithinWorkingHours(teammate) ? "online" : "offline";
 };
 
+// Get timezone abbreviation with DST awareness
 export const getTimezoneAbbreviation = (timezone) => {
-  const abbreviations = {
-    "America/New_York": "EST",
-    "Asia/Kolkata": "IST", 
-    "Europe/London": "GMT",
-    "Asia/Tokyo": "JST",
-    "America/Los_Angeles": "PST",
-    "Australia/Sydney": "AEDT"
-  };
-  return abbreviations[timezone] || timezone;
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    timeZoneName: 'short'
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const timeZoneName = parts.find(part => part.type === 'timeZoneName');
+  return timeZoneName ? timeZoneName.value : timezone;
+};
+
+// Get current UTC offset for a timezone (handles DST automatically)
+export const getCurrentUtcOffset = (timezone) => {
+  const now = new Date();
+  const utcTime = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+  const localTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+  const offsetMs = localTime.getTime() - utcTime.getTime();
+  return offsetMs / (1000 * 60 * 60); // Convert to hours
 };
 
 // Add new teammate function

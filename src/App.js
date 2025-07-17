@@ -64,7 +64,7 @@ function TimelineContent() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <div className="text-base sm:text-lg font-mono font-semibold">{formatTime(localTime)}</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">{teammate.timezone}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{teammate.timezoneDisplay}</div>
                 </div>
               </div>
             </div>
