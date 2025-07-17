@@ -1,9 +1,7 @@
 import { ThemeProvider } from "./components/theme-provider"
 import { Layout } from "./components/layout"
-import { Button } from "./components/ui/button"
-import { teammates, getTeammateLocalTime, formatTime, isWithinWorkingHours, getTimezoneAbbreviation, getOnlineStatus } from "./data/teammates"
+import { teammates, getTeammateLocalTime, formatTime, getOnlineStatus } from "./data/teammates"
 import { useState, useEffect } from "react"
-import { cn } from "./lib/utils"
 
 function TimelineContent() {
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -32,7 +30,6 @@ function TimelineContent() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {teammates.map((teammate) => {
           const localTime = getTeammateLocalTime(teammate)
-          const isWorking = isWithinWorkingHours(teammate)
           
           return (
             <div key={teammate.id} className="bg-card p-4 rounded-xl border border-border hover:border-border/60 transition-all duration-300 hover:shadow-lg hover:shadow-black/5">

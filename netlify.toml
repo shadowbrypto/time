@@ -1,6 +1,9 @@
 [build]
   publish = "build"
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm install --legacy-peer-deps && CI=false npm run build"
+
+[build.environment]
+  CI = "false"
 
 [[redirects]]
   from = "/*"
