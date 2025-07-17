@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { cn } from "../lib/utils"
 import { Button } from "./ui/button"
 import { useTheme } from "./theme-provider"
@@ -20,6 +20,21 @@ export function Sidebar({ className }) {
   const [collapsed, setCollapsed] = useState(false)
   const { theme, setTheme } = useTheme()
 
+  // Auto-collapse on mobile screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setCollapsed(true)
+      }
+    }
+
+    // Check on initial load
+    handleResize()
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   return (
     <div className={cn(
       "flex flex-col h-screen bg-card border-r border-border",
@@ -30,7 +45,7 @@ export function Sidebar({ className }) {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         {!collapsed && (
-          <h1 className="text-xl font-bold text-foreground">TimeToSync</h1>
+          <h1 className="text-xl font-bold text-foreground">Time2Sync</h1>
         )}
         <Button
           variant="ghost"
