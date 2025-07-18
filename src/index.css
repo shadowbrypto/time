@@ -57,3 +57,62 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Leaflet Map Styles */
+.leaflet-container {
+  background: hsl(var(--muted));
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+}
+
+.leaflet-popup-tip {
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+}
+
+.leaflet-control-zoom a {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+}
+
+.leaflet-control-zoom a:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.leaflet-control-attribution {
+  background: hsl(var(--background) / 0.8);
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.25rem;
+}
+
+.leaflet-control-attribution a {
+  color: hsl(var(--primary));
+}
+
+.custom-avatar-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Dark mode tiles filter */
+.dark .leaflet-tile {
+  filter: brightness(0.8) contrast(1.2) saturate(0.8);
+}
+
+.dark .leaflet-control-zoom a {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .leaflet-control-attribution {
+  background: hsl(var(--background) / 0.9);
+}

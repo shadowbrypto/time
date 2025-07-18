@@ -1,94 +1,177 @@
-import React, { useState } from "react"
-import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps"
+import React, { useState, useEffect } from "react"
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
+import L from "leaflet"
 import { teammates, getTeammateLocalTime, formatTime, getOnlineStatus } from "../data/teammates"
+import "leaflet/dist/leaflet.css"
 
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
+// Fix for default markers in Leaflet
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+})
 
-// Map teammate locations to coordinates and country names
+// Map teammate locations to coordinates
 const locationCoordinates = {
-  "Asia/Dubai": { coords: [55.2708, 25.2048], country: "United Arab Emirates" },
-  "America/New_York": { coords: [-74.0059, 40.7128], country: "United States of America" },
-  "Europe/Zurich": { coords: [8.5417, 47.3769], country: "Switzerland" },
-  "Europe/Paris": { coords: [2.3522, 48.8566], country: "France" },
-  "Europe/London": { coords: [-0.1276, 51.5074], country: "United Kingdom" },
-  "Pacific/Honolulu": { coords: [-157.8583, 21.3099], country: "United States of America" },
-  "America/Los_Angeles": { coords: [-118.2437, 34.0522], country: "United States of America" },
-  "America/Argentina/Buenos_Aires": { coords: [-58.3816, -34.6037], country: "Argentina" },
-  "Europe/Sofia": { coords: [23.3219, 42.6977], country: "Bulgaria" },
-  "Europe/Berlin": { coords: [13.4050, 52.5200], country: "Germany" },
-  "America/Chicago": { coords: [-87.6298, 41.8781], country: "United States of America" },
-  "Europe/Warsaw": { coords: [21.0122, 52.2297], country: "Poland" },
+  "Asia/Dubai": { coords: [25.2048, 55.2708], country: "United Arab Emirates" },
+  "America/New_York": { coords: [40.7128, -74.0059], country: "United States of America" },
+  "Europe/Zurich": { coords: [47.3769, 8.5417], country: "Switzerland" },
+  "Europe/Paris": { coords: [48.8566, 2.3522], country: "France" },
+  "Europe/London": { coords: [51.5074, -0.1276], country: "United Kingdom" },
+  "Pacific/Honolulu": { coords: [21.3099, -157.8583], country: "United States of America" },
+  "America/Los_Angeles": { coords: [34.0522, -118.2437], country: "United States of America" },
+  "America/Argentina/Buenos_Aires": { coords: [-34.6037, -58.3816], country: "Argentina" },
+  "Europe/Sofia": { coords: [42.6977, 23.3219], country: "Bulgaria" },
+  "Europe/Berlin": { coords: [52.5200, 13.4050], country: "Germany" },
+  "America/Chicago": { coords: [41.8781, -87.6298], country: "United States of America" },
+  "Europe/Warsaw": { coords: [52.2297, 21.0122], country: "Poland" },
+}
+
+// Create custom avatar icon
+const createAvatarIcon = (teammate, isOnline, size = 40) => {
+  const iconHtml = `
+    <div style="
+      width: ${size}px;
+      height: ${size}px;
+      position: relative;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    ">
+      <img 
+        src="${teammate.avatar}" 
+        alt="${teammate.name}"
+        style="
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 50%;
+        "
+        onerror="this.style.display='none'; this.nextSibling.style.display='flex';"
+      />
+      <div style="
+        width: 100%;
+        height: 100%;
+        background: hsl(var(--primary));
+        color: white;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: ${size * 0.4}px;
+        border-radius: 50%;
+      ">
+        ${teammate.name.charAt(0).toUpperCase()}
+      </div>
+      <div style="
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: ${size * 0.3}px;
+        height: ${size * 0.3}px;
+        background: ${isOnline ? '#10B981' : '#EF4444'};
+        border: 2px solid white;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      "></div>
+    </div>
+  `
+  
+  return L.divIcon({
+    html: iconHtml,
+    className: 'custom-avatar-icon',
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2],
+    popupAnchor: [0, -size/2]
+  })
+}
+
+// Component to handle zoom level changes
+function ZoomHandler({ onZoomChange }) {
+  const map = useMap()
+  
+  useEffect(() => {
+    const handleZoom = () => {
+      onZoomChange(map.getZoom())
+    }
+    
+    map.on('zoom', handleZoom)
+    handleZoom() // Initial call
+    
+    return () => {
+      map.off('zoom', handleZoom)
+    }
+  }, [map, onZoomChange])
+  
+  return null
 }
 
 function WorldMap() {
-  const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 })
   const [showTeammates, setShowTeammates] = useState(true)
-  const [hoveredCountry, setHoveredCountry] = useState(null)
+  const [zoomLevel, setZoomLevel] = useState(3)
 
-  // Get countries that have team members
-  const countriesWithTeammates = new Set()
-  const teammatesByCountry = {}
-  teammates.forEach(teammate => {
-    const location = locationCoordinates[teammate.timezone]
-    if (location) {
-      countriesWithTeammates.add(location.country)
-      if (!teammatesByCountry[location.country]) {
-        teammatesByCountry[location.country] = []
-      }
-      teammatesByCountry[location.country].push(teammate)
-    }
-  })
-
-  const handleMoveEnd = (position) => {
-    setPosition({
-      coordinates: position.coordinates,
-      zoom: position.zoom
-    })
+  // Calculate marker size based on zoom level
+  const getMarkerSize = (zoom) => {
+    return Math.max(20, Math.min(60, 30 + (zoom - 3) * 5))
   }
 
-  const handleZoomIn = () => {
-    if (position.zoom >= 8) return
-    setPosition((prev) => ({ ...prev, zoom: prev.zoom * 1.5 }))
-  }
-
-  const handleZoomOut = () => {
-    if (position.zoom <= 0.5) return
-    setPosition((prev) => ({ ...prev, zoom: prev.zoom / 1.5 }))
-  }
-
-  const handleReset = () => {
-    setPosition({ coordinates: [0, 0], zoom: 1 })
+  const handleZoomChange = (zoom) => {
+    setZoomLevel(zoom)
   }
 
   return (
-    <div className="w-full h-64 sm:h-80 lg:h-96 bg-card rounded-lg border border-border p-2 sm:p-4 overflow-hidden relative">
-      {/* Zoom Controls */}
-      <div className="absolute top-4 right-4 z-10 flex flex-col gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-md p-1">
-        <button
-          onClick={handleZoomIn}
-          className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
-          title="Zoom In"
-        >
-          +
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
-          title="Zoom Out"
-        >
-          −
-        </button>
-        <button
-          onClick={handleReset}
-          className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-xs font-bold"
-          title="Reset View"
-        >
-          ⌂
-        </button>
-      </div>
+    <div className="w-full h-64 sm:h-80 lg:h-96 bg-card rounded-lg border border-border overflow-hidden relative">
+      <MapContainer
+        center={[20, 0]}
+        zoom={3}
+        className="w-full h-full"
+        style={{ height: '100%', width: '100%' }}
+        worldCopyJump={true}
+        maxBounds={[[-90, -180], [90, 180]]}
+        maxBoundsViscosity={1.0}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          className="map-tiles"
+        />
+        
+        <ZoomHandler onZoomChange={handleZoomChange} />
+        
+        {showTeammates && teammates.map((teammate) => {
+          const location = locationCoordinates[teammate.timezone]
+          if (!location) return null
+          
+          const localTime = getTeammateLocalTime(teammate)
+          const isOnline = getOnlineStatus(teammate) === "online"
+          const markerSize = getMarkerSize(zoomLevel)
+          
+          return (
+            <Marker
+              key={teammate.id}
+              position={location.coords}
+              icon={createAvatarIcon(teammate, isOnline, markerSize)}
+            >
+              <Popup>
+                <div className="text-sm">
+                  <div className="font-semibold">{teammate.name}</div>
+                  <div className="text-muted-foreground">{teammate.role}</div>
+                  <div className="text-muted-foreground">{teammate.timezoneDisplay}</div>
+                  <div className="font-mono">{formatTime(localTime)}</div>
+                  <div className={`text-xs ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
+                    {isOnline ? 'Online' : 'Offline'}
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          )
+        })}
+      </MapContainer>
       
       {/* Team Toggle - Bottom Right */}
-      <div className="absolute bottom-4 right-4 z-10">
+      <div className="absolute bottom-4 right-4 z-[1000]">
         <button
           onClick={() => setShowTeammates(!showTeammates)}
           className={`w-10 h-10 rounded-full border shadow-lg transition-all duration-200 flex items-center justify-center ${
@@ -105,216 +188,6 @@ function WorldMap() {
           </svg>
         </button>
       </div>
-      
-      {/* Country Hover Tooltip */}
-      {hoveredCountry && teammatesByCountry[hoveredCountry] && (
-        <div className="absolute bottom-4 left-4 z-20 bg-background/95 backdrop-blur-sm border border-border rounded-lg p-3 max-w-xs shadow-lg">
-          <div className="text-sm font-semibold mb-2">{hoveredCountry}</div>
-          <div className="space-y-2">
-            {teammatesByCountry[hoveredCountry].map((teammate) => {
-              const localTime = getTeammateLocalTime(teammate)
-              const isOnline = getOnlineStatus(teammate) === "online"
-              
-              return (
-                <div key={teammate.id} className="flex items-center gap-2">
-                  <div className="relative">
-                    <img 
-                      src={teammate.avatar} 
-                      alt={teammate.name}
-                      className="w-6 h-6 rounded-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = 'none'
-                        e.target.nextSibling.style.display = 'flex'
-                      }}
-                    />
-                    <div 
-                      className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold"
-                      style={{display: 'none'}}
-                    >
-                      {teammate.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-background ${
-                      isOnline ? "bg-green-500" : "bg-red-500"
-                    }`}></div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-medium truncate">{teammate.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{teammate.role}</div>
-                  </div>
-                  <div className="text-xs font-mono text-right">
-                    <div>{formatTime(localTime)}</div>
-                    <div className="text-muted-foreground">{teammate.timezoneDisplay}</div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-      
-      <ComposableMap
-        projection="geoMercator"
-        projectionConfig={{
-          center: [0, 20],
-          scale: 120,
-        }}
-        width={800}
-        height={400}
-        className="w-full h-full"
-        style={{
-          width: "100%",
-          height: "100%",
-        }}
-      >
-        <ZoomableGroup 
-          zoom={position.zoom}
-          center={position.coordinates}
-          onMoveEnd={handleMoveEnd}
-          onMoveStart={() => {}} // Ensure all zoom events are captured
-          onMove={(position) => {
-            // Update position during move for smooth scaling
-            setPosition({
-              coordinates: position.coordinates,
-              zoom: position.zoom
-            })
-          }}
-          maxZoom={8}
-          minZoom={0.5}
-        >
-          <Geographies geography={geoUrl}>
-            {({ geographies }) =>
-              geographies.map((geo) => {
-                const countryName = geo.properties.name
-                const hasTeammates = countriesWithTeammates.has(countryName)
-                
-                return (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    fill={hasTeammates ? "hsl(var(--primary))" : "hsl(var(--muted))"}
-                    stroke="hsl(var(--border))"
-                    strokeWidth={hasTeammates ? 0.8 : 0.5}
-                    onMouseEnter={() => {
-                      if (hasTeammates) {
-                        setHoveredCountry(countryName)
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      setHoveredCountry(null)
-                    }}
-                    style={{
-                      default: {
-                        fill: hasTeammates ? "hsl(var(--primary))" : "hsl(var(--muted))",
-                        fillOpacity: hasTeammates ? 0.3 : 1,
-                        outline: "none",
-                        cursor: hasTeammates ? "pointer" : "default",
-                      },
-                      hover: {
-                        fill: hasTeammates ? "hsl(var(--primary))" : "hsl(var(--accent))",
-                        fillOpacity: hasTeammates ? 0.5 : 1,
-                        outline: "none",
-                        cursor: hasTeammates ? "pointer" : "default",
-                      },
-                      pressed: {
-                        fill: hasTeammates ? "hsl(var(--primary))" : "hsl(var(--accent))",
-                        fillOpacity: hasTeammates ? 0.6 : 1,
-                        outline: "none",
-                        cursor: hasTeammates ? "pointer" : "default",
-                      },
-                    }}
-                  />
-                )
-              })
-            }
-          </Geographies>
-          
-          {showTeammates && teammates.map((teammate) => {
-            const location = locationCoordinates[teammate.timezone]
-            if (!location) return null
-            
-            const localTime = getTeammateLocalTime(teammate)
-            const isOnline = getOnlineStatus(teammate) === "online"
-            
-            // Calculate scaled sizes based on current zoom level
-            const baseSize = 15
-            const statusSize = 5
-            const currentZoom = position.zoom
-            const scaledSize = Math.max(baseSize / Math.sqrt(currentZoom), 6) // Minimum size of 6, sqrt for smoother scaling
-            const scaledStatusSize = Math.max(statusSize / Math.sqrt(currentZoom), 2) // Minimum size of 2
-            const scaledStrokeWidth = Math.max(1.5 / Math.sqrt(currentZoom), 0.3) // Minimum stroke width
-            
-            return (
-              <Marker key={teammate.id} coordinates={location.coords}>
-                <g>
-                  {/* Avatar container */}
-                  <circle
-                    r={scaledSize}
-                    fill="hsl(var(--background))"
-                    stroke="hsl(var(--border))"
-                    strokeWidth={scaledStrokeWidth}
-                  />
-                  
-                  {/* Define clip path for circular avatar */}
-                  <defs>
-                    <clipPath id={`avatar-clip-${teammate.id}`}>
-                      <circle r={scaledSize} />
-                    </clipPath>
-                  </defs>
-                  
-                  {/* Avatar image */}
-                  <image
-                    href={teammate.avatar}
-                    x={-scaledSize}
-                    y={-scaledSize}
-                    width={scaledSize * 2}
-                    height={scaledSize * 2}
-                    clipPath={`url(#avatar-clip-${teammate.id})`}
-                    style={{
-                      objectFit: "cover",
-                    }}
-                  />
-                  
-                  {/* Online/offline status dot */}
-                  <circle
-                    cx={scaledSize * 0.7}
-                    cy={-scaledSize * 0.7}
-                    r={scaledStatusSize}
-                    fill={isOnline ? "#10B981" : "#EF4444"}
-                    stroke="hsl(var(--background))"
-                    strokeWidth={scaledStrokeWidth}
-                  />
-                  
-                  {/* Fallback initial if image fails */}
-                  <text
-                    textAnchor="middle"
-                    y={scaledSize * 0.3}
-                    style={{
-                      fontFamily: "system-ui",
-                      fontSize: `${Math.max(scaledSize * 0.8, 8)}px`,
-                      fontWeight: "bold",
-                      fill: "hsl(var(--foreground))",
-                      display: "none",
-                    }}
-                  >
-                    {teammate.name.charAt(0).toUpperCase()}
-                  </text>
-                  
-                  {/* Tooltip on hover */}
-                  <title>
-                    {teammate.name} ({teammate.role})
-                    {"\n"}
-                    {teammate.timezoneDisplay}
-                    {"\n"}
-                    {formatTime(localTime)}
-                    {"\n"}
-                    Status: {isOnline ? "Online" : "Offline"}
-                  </title>
-                </g>
-              </Marker>
-            )
-          })}
-        </ZoomableGroup>
-      </ComposableMap>
     </div>
   )
 }

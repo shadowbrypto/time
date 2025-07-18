@@ -73,10 +73,7 @@ function Timeline() {
       
       {/* World Map */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Team Locations</h2>
-          <p className="text-sm text-muted-foreground">Drag to pan • Scroll to zoom • Hover countries • Toggle members</p>
-        </div>
+        <h2 className="text-xl font-semibold">Team Locations</h2>
         <WorldMap />
       </div>
       
