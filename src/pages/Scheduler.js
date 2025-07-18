@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { teammates, getTeammateLocalTime, formatTime } from "../data/teammates"
 import { cn } from "../lib/utils"
 
@@ -7,7 +7,6 @@ function Scheduler() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState({ start: null, end: null })
   const [isDragging, setIsDragging] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
-  const sliderRef = useRef(null)
 
   useEffect(() => {
     const timer = setInterval(() => {
