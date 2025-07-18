@@ -22,13 +22,20 @@ const locationCoordinates = {
 
 function WorldMap() {
   const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 })
+  const [showTeammates, setShowTeammates] = useState(true)
+  const [hoveredCountry, setHoveredCountry] = useState(null)
 
   // Get countries that have team members
   const countriesWithTeammates = new Set()
+  const teammatesByCountry = {}
   teammates.forEach(teammate => {
     const location = locationCoordinates[teammate.timezone]
     if (location) {
       countriesWithTeammates.add(location.country)
+      if (!teammatesByCountry[location.country]) {
+        teammatesByCountry[location.country] = []
+      }
+      teammatesByCountry[location.country].push(teammate)
     }
   })
 
@@ -55,29 +62,47 @@ function WorldMap() {
 
   return (
     <div className="w-full h-64 sm:h-80 lg:h-96 bg-card rounded-lg border border-border p-2 sm:p-4 overflow-hidden relative">
-      {/* Zoom Controls */}
-      <div className="absolute top-4 right-4 z-10 flex flex-col gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-md p-1">
-        <button
-          onClick={handleZoomIn}
-          className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
-          title="Zoom In"
-        >
-          +
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
-          title="Zoom Out"
-        >
-          −
-        </button>
-        <button
-          onClick={handleReset}
-          className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-xs font-bold"
-          title="Reset View"
-        >
-          ⌂
-        </button>
+      {/* Controls */}
+      <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+        {/* Zoom Controls */}
+        <div className="flex flex-col gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-md p-1">
+          <button
+            onClick={handleZoomIn}
+            className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
+            title="Zoom In"
+          >
+            +
+          </button>
+          <button
+            onClick={handleZoomOut}
+            className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
+            title="Zoom Out"
+          >
+            −
+          </button>
+          <button
+            onClick={handleReset}
+            className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-xs font-bold"
+            title="Reset View"
+          >
+            ⌂
+          </button>
+        </div>
+        
+        {/* Team Toggle */}
+        <div className="bg-background/80 backdrop-blur-sm border border-border rounded-md p-1">
+          <button
+            onClick={() => setShowTeammates(!showTeammates)}
+            className={`w-8 h-8 flex items-center justify-center rounded text-xs font-bold transition-colors ${
+              showTeammates 
+                ? 'bg-primary text-primary-foreground' 
+                : 'hover:bg-accent'
+            }`}
+            title={showTeammates ? "Hide Team Members" : "Show Team Members"}
+          >
+            👥
+          </button>
+        </div>
       </div>
       
       {/* Legend */}
@@ -87,6 +112,52 @@ function WorldMap() {
           <span>Countries with team members</span>
         </div>
       </div>
+      
+      {/* Country Hover Tooltip */}
+      {hoveredCountry && teammatesByCountry[hoveredCountry] && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-background/95 backdrop-blur-sm border border-border rounded-lg p-3 max-w-xs">
+          <div className="text-sm font-semibold mb-2">{hoveredCountry}</div>
+          <div className="space-y-2">
+            {teammatesByCountry[hoveredCountry].map((teammate) => {
+              const localTime = getTeammateLocalTime(teammate)
+              const isOnline = getOnlineStatus(teammate) === "online"
+              
+              return (
+                <div key={teammate.id} className="flex items-center gap-2">
+                  <div className="relative">
+                    <img 
+                      src={teammate.avatar} 
+                      alt={teammate.name}
+                      className="w-6 h-6 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                        e.target.nextSibling.style.display = 'flex'
+                      }}
+                    />
+                    <div 
+                      className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold"
+                      style={{display: 'none'}}
+                    >
+                      {teammate.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-background ${
+                      isOnline ? "bg-green-500" : "bg-red-500"
+                    }`}></div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium truncate">{teammate.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{teammate.role}</div>
+                  </div>
+                  <div className="text-xs font-mono text-right">
+                    <div>{formatTime(localTime)}</div>
+                    <div className="text-muted-foreground">{teammate.timezoneDisplay}</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
       
       <ComposableMap
         projection="geoMercator"
@@ -130,21 +201,32 @@ function WorldMap() {
                     fill={hasTeammates ? "hsl(var(--primary))" : "hsl(var(--muted))"}
                     stroke="hsl(var(--border))"
                     strokeWidth={hasTeammates ? 0.8 : 0.5}
+                    onMouseEnter={() => {
+                      if (hasTeammates) {
+                        setHoveredCountry(countryName)
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredCountry(null)
+                    }}
                     style={{
                       default: {
                         fill: hasTeammates ? "hsl(var(--primary))" : "hsl(var(--muted))",
                         fillOpacity: hasTeammates ? 0.3 : 1,
                         outline: "none",
+                        cursor: hasTeammates ? "pointer" : "default",
                       },
                       hover: {
                         fill: hasTeammates ? "hsl(var(--primary))" : "hsl(var(--accent))",
                         fillOpacity: hasTeammates ? 0.5 : 1,
                         outline: "none",
+                        cursor: hasTeammates ? "pointer" : "default",
                       },
                       pressed: {
                         fill: hasTeammates ? "hsl(var(--primary))" : "hsl(var(--accent))",
                         fillOpacity: hasTeammates ? 0.6 : 1,
                         outline: "none",
+                        cursor: hasTeammates ? "pointer" : "default",
                       },
                     }}
                   />
@@ -153,7 +235,7 @@ function WorldMap() {
             }
           </Geographies>
           
-          {teammates.map((teammate) => {
+          {showTeammates && teammates.map((teammate) => {
             const location = locationCoordinates[teammate.timezone]
             if (!location) return null
             
