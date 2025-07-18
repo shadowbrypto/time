@@ -4,24 +4,33 @@ import { teammates, getTeammateLocalTime, formatTime, getOnlineStatus } from "..
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
 
-// Map teammate locations to coordinates
+// Map teammate locations to coordinates and country names
 const locationCoordinates = {
-  "Asia/Dubai": [55.2708, 25.2048], // Dubai, UAE
-  "America/New_York": [-74.0059, 40.7128], // New York, USA
-  "Europe/Zurich": [8.5417, 47.3769], // Zurich, Switzerland
-  "Europe/Paris": [2.3522, 48.8566], // Paris, France
-  "Europe/London": [-0.1276, 51.5074], // London, UK
-  "Pacific/Honolulu": [-157.8583, 21.3099], // Honolulu, Hawaii
-  "America/Los_Angeles": [-118.2437, 34.0522], // Los Angeles, USA
-  "America/Argentina/Buenos_Aires": [-58.3816, -34.6037], // Buenos Aires, Argentina
-  "Europe/Sofia": [23.3219, 42.6977], // Sofia, Bulgaria
-  "Europe/Berlin": [13.4050, 52.5200], // Berlin, Germany (Munich is in same timezone)
-  "America/Chicago": [-87.6298, 41.8781], // Chicago, USA
-  "Europe/Warsaw": [21.0122, 52.2297], // Warsaw, Poland
+  "Asia/Dubai": { coords: [55.2708, 25.2048], country: "United Arab Emirates" },
+  "America/New_York": { coords: [-74.0059, 40.7128], country: "United States of America" },
+  "Europe/Zurich": { coords: [8.5417, 47.3769], country: "Switzerland" },
+  "Europe/Paris": { coords: [2.3522, 48.8566], country: "France" },
+  "Europe/London": { coords: [-0.1276, 51.5074], country: "United Kingdom" },
+  "Pacific/Honolulu": { coords: [-157.8583, 21.3099], country: "United States of America" },
+  "America/Los_Angeles": { coords: [-118.2437, 34.0522], country: "United States of America" },
+  "America/Argentina/Buenos_Aires": { coords: [-58.3816, -34.6037], country: "Argentina" },
+  "Europe/Sofia": { coords: [23.3219, 42.6977], country: "Bulgaria" },
+  "Europe/Berlin": { coords: [13.4050, 52.5200], country: "Germany" },
+  "America/Chicago": { coords: [-87.6298, 41.8781], country: "United States of America" },
+  "Europe/Warsaw": { coords: [21.0122, 52.2297], country: "Poland" },
 }
 
 function WorldMap() {
   const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 })
+
+  // Get countries that have team members
+  const countriesWithTeammates = new Set()
+  teammates.forEach(teammate => {
+    const location = locationCoordinates[teammate.timezone]
+    if (location) {
+      countriesWithTeammates.add(location.country)
+    }
+  })
 
   const handleMoveEnd = (position) => {
     setPosition({
@@ -71,6 +80,14 @@ function WorldMap() {
         </button>
       </div>
       
+      {/* Legend */}
+      <div className="absolute bottom-4 left-4 z-10 bg-background/80 backdrop-blur-sm border border-border rounded-md p-2">
+        <div className="flex items-center gap-2 text-xs">
+          <div className="w-3 h-3 rounded-sm bg-primary/30 border border-primary/50"></div>
+          <span>Countries with team members</span>
+        </div>
+      </div>
+      
       <ComposableMap
         projection="geoMercator"
         projectionConfig={{
@@ -102,35 +119,43 @@ function WorldMap() {
         >
           <Geographies geography={geoUrl}>
             {({ geographies }) =>
-              geographies.map((geo) => (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
-                  fill="hsl(var(--muted))"
-                  stroke="hsl(var(--border))"
-                  strokeWidth={0.5}
-                  style={{
-                    default: {
-                      fill: "hsl(var(--muted))",
-                      outline: "none",
-                    },
-                    hover: {
-                      fill: "hsl(var(--accent))",
-                      outline: "none",
-                    },
-                    pressed: {
-                      fill: "hsl(var(--accent))",
-                      outline: "none",
-                    },
-                  }}
-                />
-              ))
+              geographies.map((geo) => {
+                const countryName = geo.properties.name
+                const hasTeammates = countriesWithTeammates.has(countryName)
+                
+                return (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    fill={hasTeammates ? "hsl(var(--primary))" : "hsl(var(--muted))"}
+                    stroke="hsl(var(--border))"
+                    strokeWidth={hasTeammates ? 0.8 : 0.5}
+                    style={{
+                      default: {
+                        fill: hasTeammates ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                        fillOpacity: hasTeammates ? 0.3 : 1,
+                        outline: "none",
+                      },
+                      hover: {
+                        fill: hasTeammates ? "hsl(var(--primary))" : "hsl(var(--accent))",
+                        fillOpacity: hasTeammates ? 0.5 : 1,
+                        outline: "none",
+                      },
+                      pressed: {
+                        fill: hasTeammates ? "hsl(var(--primary))" : "hsl(var(--accent))",
+                        fillOpacity: hasTeammates ? 0.6 : 1,
+                        outline: "none",
+                      },
+                    }}
+                  />
+                )
+              })
             }
           </Geographies>
           
           {teammates.map((teammate) => {
-            const coordinates = locationCoordinates[teammate.timezone]
-            if (!coordinates) return null
+            const location = locationCoordinates[teammate.timezone]
+            if (!location) return null
             
             const localTime = getTeammateLocalTime(teammate)
             const isOnline = getOnlineStatus(teammate) === "online"
@@ -144,7 +169,7 @@ function WorldMap() {
             const scaledStrokeWidth = Math.max(1.5 / Math.sqrt(currentZoom), 0.3) // Minimum stroke width
             
             return (
-              <Marker key={teammate.id} coordinates={coordinates}>
+              <Marker key={teammate.id} coordinates={location.coords}>
                 <g>
                   {/* Avatar container */}
                   <circle
