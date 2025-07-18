@@ -267,6 +267,22 @@ export const getCurrentUtcOffset = (timezone) => {
   return offsetMs / (1000 * 60 * 60); // Convert to hours
 };
 
+// Role color mapping
+export const getRoleColor = (role) => {
+  const roleColors = {
+    'Founder': 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+    'COO': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+    'Operations & PM': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+    'Art Director': 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300 border-pink-200 dark:border-pink-800',
+    'UI/UX Designer': 'bg-rose-100 text-rose-800 dark:bg-rose-900/20 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+    'Dashboard Guy': 'bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-300 border-teal-200 dark:border-teal-800',
+    'BD': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 border-green-200 dark:border-green-800',
+    'PR': 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+    'Support': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800'
+  };
+  return roleColors[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300 border-gray-200 dark:border-gray-800';
+};
+
 // Add new teammate function
 export const addTeammate = (teammate) => {
   const newTeammate = {

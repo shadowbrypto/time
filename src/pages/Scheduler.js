@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { teammates, getTeammateLocalTime, formatTime } from "../data/teammates"
+import { teammates, getTeammateLocalTime, formatTime, getOnlineStatus, getRoleColor } from "../data/teammates"
 import { cn } from "../lib/utils"
 
 function Scheduler() {
@@ -7,6 +7,7 @@ function Scheduler() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState({ start: null, end: null })
   const [isDragging, setIsDragging] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [hoveredBubble, setHoveredBubble] = useState(null)
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -137,11 +138,108 @@ function Scheduler() {
   }
 
   const selectedTeammateData = teammates.filter(t => selectedTeammates.includes(t.id))
+  
+  // Get online and offline teammates
+  const onlineTeammates = teammates.filter(teammate => getOnlineStatus(teammate) === "online")
+  const offlineTeammates = teammates.filter(teammate => getOnlineStatus(teammate) === "offline")
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold">Meeting Scheduler</h1>
+        <div className="flex items-center gap-4">
+          {/* Status Bubbles */}
+          <div className="flex items-center gap-3">
+            {/* Online Bubble */}
+            <div 
+              className={`flex items-center gap-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-full px-2 py-1 transition-all duration-300 ease-in-out ${
+                hoveredBubble === 'online' ? 'px-3' : ''
+              }`}
+              onMouseEnter={() => setHoveredBubble('online')}
+              onMouseLeave={() => setHoveredBubble(null)}
+            >
+              <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+              <span className="text-xs font-medium text-green-700 dark:text-green-300">
+                {onlineTeammates.length}
+              </span>
+              <div className="flex -space-x-1">
+                {(hoveredBubble === 'online' ? onlineTeammates : onlineTeammates.slice(0, 3)).map((teammate) => (
+                  <div key={teammate.id} className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-0.5 shadow-sm border border-white dark:border-gray-900">
+                    <img 
+                      src={teammate.avatar} 
+                      alt={teammate.name}
+                      className="w-full h-full rounded-full object-cover bg-gray-200"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <div 
+                      className="w-full h-full rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold"
+                      style={{display: 'none'}}
+                    >
+                      {teammate.name.charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+                ))}
+                {onlineTeammates.length > 3 && hoveredBubble !== 'online' && (
+                  <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-800 border border-white dark:border-gray-900 flex items-center justify-center">
+                    <span className="text-xs font-medium text-green-700 dark:text-green-300">+{onlineTeammates.length - 3}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Offline Bubble */}
+            <div 
+              className={`flex items-center gap-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-full px-2 py-1 transition-all duration-300 ease-in-out ${
+                hoveredBubble === 'offline' ? 'px-3' : ''
+              }`}
+              onMouseEnter={() => setHoveredBubble('offline')}
+              onMouseLeave={() => setHoveredBubble(null)}
+            >
+              <div className="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
+              <span className="text-xs font-medium text-red-700 dark:text-red-300">
+                {offlineTeammates.length}
+              </span>
+              <div className="flex -space-x-1">
+                {(hoveredBubble === 'offline' ? offlineTeammates : offlineTeammates.slice(0, 3)).map((teammate) => (
+                  <div key={teammate.id} className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-0.5 shadow-sm border border-white dark:border-gray-900">
+                    <img 
+                      src={teammate.avatar} 
+                      alt={teammate.name}
+                      className="w-full h-full rounded-full object-cover bg-gray-200"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <div 
+                      className="w-full h-full rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold"
+                      style={{display: 'none'}}
+                    >
+                      {teammate.name.charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+                ))}
+                {offlineTeammates.length > 3 && hoveredBubble !== 'offline' && (
+                  <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-800 border border-white dark:border-gray-900 flex items-center justify-center">
+                    <span className="text-xs font-medium text-red-700 dark:text-red-300">+{offlineTeammates.length - 3}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="text-right">
+            <div className="text-base sm:text-lg font-mono">
+              {formatTime(currentTime)}
+            </div>
+            <div className="text-xs sm:text-sm text-muted-foreground">
+              {Intl.DateTimeFormat().resolvedOptions().timeZone}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Team Member Selector */}
@@ -159,20 +257,25 @@ function Scheduler() {
                   : "border-border/60 hover:border-border hover:bg-accent/50 dark:border-border/40 dark:hover:border-border/60 dark:hover:bg-accent/30"
               )}
             >
-              <img 
-                src={teammate.avatar} 
-                alt={teammate.name}
-                className="w-6 h-6 rounded-full object-cover"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-              <div 
-                className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold"
-                style={{display: 'none'}}
-              >
-                {teammate.name.charAt(0).toUpperCase()}
+              <div className="relative flex-shrink-0">
+                <img 
+                  src={teammate.avatar} 
+                  alt={teammate.name}
+                  className="w-6 h-6 rounded-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                <div 
+                  className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold"
+                  style={{display: 'none'}}
+                >
+                  {teammate.name.charAt(0).toUpperCase()}
+                </div>
+                <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-background shadow-sm ${
+                  getOnlineStatus(teammate) === "online" ? "bg-green-500" : "bg-red-500"
+                }`}></span>
               </div>
               <span className="text-sm font-medium">{teammate.name}</span>
               <span className="text-xs text-muted-foreground">({teammate.timezoneDisplay})</span>
@@ -325,17 +428,16 @@ function Scheduler() {
                             {teammate.name.charAt(0).toUpperCase()}
                           </div>
                         </div>
-                        <div className={cn(
-                          "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background",
-                          isWithinWorkingHours(teammate, Math.floor(new Date().getHours() * 2)) ? "bg-green-500" : "bg-destructive"
-                        )}></div>
+                        <span className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border border-background shadow-sm ${
+                          getOnlineStatus(teammate) === "online" ? "bg-green-500" : "bg-red-500"
+                        }`}></span>
                       </div>
                       
                       <div className="flex min-w-0 flex-1 items-center justify-between">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <div className="font-semibold text-foreground">{teammate.name}</div>
-                            <div className="inline-flex items-center rounded-md border border-transparent bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+                            <div className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${getRoleColor(teammate.role)}`}>
                               {teammate.role}
                             </div>
                           </div>

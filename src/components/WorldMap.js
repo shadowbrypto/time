@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps"
-import { teammates, getTeammateLocalTime, formatTime, getOnlineStatus } from "../data/teammates"
+import { teammates, getTeammateLocalTime, formatTime, getOnlineStatus, getRoleColor } from "../data/teammates"
 
 // Map teammate locations to coordinates
 const locationCoordinates = {
@@ -20,7 +20,9 @@ const locationCoordinates = {
 
 function WorldMap() {
   const [showTeammates, setShowTeammates] = useState(true)
-  const [selectedTeammate, setSelectedTeammate] = useState(null)
+  const [hoveredCountry, setHoveredCountry] = useState(null)
+  const [hoveredTeammate, setHoveredTeammate] = useState(null)
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
 
   // Map specific countries based on teammate timezones
   const getCountriesWithTeammates = () => {
@@ -28,11 +30,13 @@ function WorldMap() {
     teammates.forEach(teammate => {
       const coords = locationCoordinates[teammate.timezone]
       if (coords) {
-        // Map specific timezones to actual country names
+        // Map specific timezones to actual country names with multiple variations
         switch(teammate.timezone) {
           case "Asia/Dubai":
             countries.add("United Arab Emirates")
             countries.add("UAE")
+            countries.add("U.A.E.")
+            countries.add("ARE")
             break
           case "America/New_York":
           case "Pacific/Honolulu":
@@ -41,28 +45,48 @@ function WorldMap() {
             countries.add("United States of America")
             countries.add("United States")
             countries.add("USA")
+            countries.add("U.S.A.")
+            countries.add("US")
+            countries.add("America")
             break
           case "Europe/Zurich":
             countries.add("Switzerland")
+            countries.add("Swiss Confederation")
+            countries.add("CHE")
             break
           case "Europe/Paris":
             countries.add("France")
+            countries.add("French Republic")
+            countries.add("FRA")
             break
           case "Europe/London":
             countries.add("United Kingdom")
             countries.add("UK")
+            countries.add("U.K.")
+            countries.add("Great Britain")
+            countries.add("Britain")
+            countries.add("GBR")
             break
           case "America/Argentina/Buenos_Aires":
             countries.add("Argentina")
+            countries.add("Argentine Republic")
+            countries.add("ARG")
             break
           case "Europe/Sofia":
             countries.add("Bulgaria")
+            countries.add("Republic of Bulgaria")
+            countries.add("BGR")
             break
           case "Europe/Berlin":
             countries.add("Germany")
+            countries.add("Federal Republic of Germany")
+            countries.add("Deutschland")
+            countries.add("DEU")
             break
           case "Europe/Warsaw":
             countries.add("Poland")
+            countries.add("Republic of Poland")
+            countries.add("POL")
             break
           default:
             break
@@ -74,8 +98,114 @@ function WorldMap() {
 
   const countriesWithTeammates = getCountriesWithTeammates()
 
+  // Get country flag emoji
+  const getCountryFlag = (countryName) => {
+    const flagMap = {
+      'United States of America': '🇺🇸',
+      'United States': '🇺🇸',
+      'USA': '🇺🇸',
+      'U.S.A.': '🇺🇸',
+      'US': '🇺🇸',
+      'America': '🇺🇸',
+      'United Kingdom': '🇬🇧',
+      'UK': '🇬🇧',
+      'U.K.': '🇬🇧',
+      'Great Britain': '🇬🇧',
+      'Britain': '🇬🇧',
+      'GBR': '🇬🇧',
+      'France': '🇫🇷',
+      'French Republic': '🇫🇷',
+      'FRA': '🇫🇷',
+      'Germany': '🇩🇪',
+      'Federal Republic of Germany': '🇩🇪',
+      'Deutschland': '🇩🇪',
+      'DEU': '🇩🇪',
+      'Switzerland': '🇨🇭',
+      'Swiss Confederation': '🇨🇭',
+      'CHE': '🇨🇭',
+      'Poland': '🇵🇱',
+      'Republic of Poland': '🇵🇱',
+      'POL': '🇵🇱',
+      'Bulgaria': '🇧🇬',
+      'Republic of Bulgaria': '🇧🇬',
+      'BGR': '🇧🇬',
+      'Argentina': '🇦🇷',
+      'Argentine Republic': '🇦🇷',
+      'ARG': '🇦🇷',
+      'United Arab Emirates': '🇦🇪',
+      'UAE': '🇦🇪',
+      'U.A.E.': '🇦🇪',
+      'ARE': '🇦🇪'
+    }
+    return flagMap[countryName] || '🏳️'
+  }
+
+  // Get teammates for a specific country
+  const getTeammatesByCountry = (countryName) => {
+    if (!countryName) return []
+    
+    return teammates.filter(teammate => {
+      switch(teammate.timezone) {
+        case "Asia/Dubai":
+          return ["United Arab Emirates", "UAE", "U.A.E.", "ARE"].includes(countryName)
+        case "America/New_York":
+        case "Pacific/Honolulu":
+        case "America/Los_Angeles":
+        case "America/Chicago":
+          return ["United States of America", "United States", "USA", "U.S.A.", "US", "America"].includes(countryName)
+        case "Europe/Zurich":
+          return ["Switzerland", "Swiss Confederation", "CHE"].includes(countryName)
+        case "Europe/Paris":
+          return ["France", "French Republic", "FRA"].includes(countryName)
+        case "Europe/London":
+          return ["United Kingdom", "UK", "U.K.", "Great Britain", "Britain", "GBR"].includes(countryName)
+        case "America/Argentina/Buenos_Aires":
+          return ["Argentina", "Argentine Republic", "ARG"].includes(countryName)
+        case "Europe/Sofia":
+          return ["Bulgaria", "Republic of Bulgaria", "BGR"].includes(countryName)
+        case "Europe/Berlin":
+          return ["Germany", "Federal Republic of Germany", "Deutschland", "DEU"].includes(countryName)
+        case "Europe/Warsaw":
+          return ["Poland", "Republic of Poland", "POL"].includes(countryName)
+        default:
+          return false
+      }
+    })
+  }
+
+  // Group teammates by coordinates for map display
+  const getTeammatesByCoordinates = () => {
+    const groupedByCoords = {}
+    teammates.forEach(teammate => {
+      const coords = locationCoordinates[teammate.timezone]
+      if (coords) {
+        const coordKey = `${coords[0]},${coords[1]}`
+        if (!groupedByCoords[coordKey]) {
+          groupedByCoords[coordKey] = {
+            coordinates: coords,
+            teammates: []
+          }
+        }
+        groupedByCoords[coordKey].teammates.push(teammate)
+      }
+    })
+    return groupedByCoords
+  }
+
+  // Handle mouse move for tooltip positioning
+  const handleMouseMove = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    setMousePosition({ 
+      x: event.clientX - rect.left, 
+      y: event.clientY - rect.top 
+    })
+  }
+
   return (
-    <div className="w-full h-64 sm:h-80 lg:h-96 bg-card rounded-lg border border-border overflow-hidden relative">
+    <div 
+      className="w-full h-64 sm:h-80 lg:h-96 bg-card rounded-lg border border-border overflow-hidden relative"
+      onMouseMove={handleMouseMove}
+    >
       <ComposableMap
         projection="geoMercator"
         projectionConfig={{
@@ -94,13 +224,20 @@ function WorldMap() {
           {({ geographies }) =>
             geographies.map((geo) => {
               // Check multiple possible property names for country identification
-              const countryName = geo.properties.NAME || geo.properties.NAME_EN || geo.properties.NAME_LONG || geo.properties.ADMIN
-              const isHighlighted = countryName && countriesWithTeammates.has(countryName)
+              const props = geo.properties
+              const countryNames = [
+                props.NAME,
+                props.NAME_EN,
+                props.NAME_LONG,
+                props.ADMIN,
+                props.name,
+                props.NAME_ENGL,
+                props.ISO_A3,
+                props.ISO_A2
+              ].filter(Boolean)
               
-              // Debug logging (remove in production)
-              if (countryName && (countryName.includes('United') || countryName.includes('France') || countryName.includes('Germany'))) {
-                console.log(`Country: ${countryName}, Highlighted: ${isHighlighted}`)
-              }
+              // Check if any of the country names match our team locations
+              const isHighlighted = countryNames.some(name => countriesWithTeammates.has(name))
               
               return (
                 <Geography
@@ -109,6 +246,15 @@ function WorldMap() {
                   fill={isHighlighted ? "rgba(34, 197, 94, 0.8)" : "rgba(255, 255, 255, 0.1)"}
                   stroke={isHighlighted ? "#22c55e" : "rgba(255, 255, 255, 0.3)"}
                   strokeWidth={isHighlighted ? 2 : 0.5}
+                  onMouseEnter={() => {
+                    if (isHighlighted) {
+                      const countryName = countryNames.find(name => countriesWithTeammates.has(name))
+                      setHoveredCountry(countryName)
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredCountry(null)
+                  }}
                   style={{
                     default: {
                       outline: "none",
@@ -117,7 +263,7 @@ function WorldMap() {
                     hover: {
                       fill: isHighlighted ? "rgba(34, 197, 94, 0.9)" : "rgba(255, 255, 255, 0.2)",
                       outline: "none",
-                      cursor: "pointer"
+                      cursor: isHighlighted ? "pointer" : "default"
                     },
                     pressed: {
                       fill: isHighlighted ? "rgba(34, 197, 94, 1.0)" : "rgba(255, 255, 255, 0.3)",
@@ -130,158 +276,139 @@ function WorldMap() {
           }
         </Geographies>
         
-        {/* Team member markers */}
-        {showTeammates && teammates.map((teammate) => {
-          const coords = locationCoordinates[teammate.timezone]
-          if (!coords) return null
-          
-          const isOnline = getOnlineStatus(teammate) === "online"
-          
-          // Debug logging
-          console.log(`Rendering avatar for ${teammate.name}: ${teammate.avatar}`)
+        {/* Team member markers - grouped by location */}
+        {showTeammates && Object.entries(getTeammatesByCoordinates()).map(([coordKey, group]) => {
+          const coords = group.coordinates
+          const groupTeammates = group.teammates
+          const mainTeammate = groupTeammates[0]
           
           return (
             <Marker
-              key={teammate.id}
+              key={coordKey}
               coordinates={coords}
-              onClick={() => setSelectedTeammate(teammate)}
             >
-              <g className="cursor-pointer">
+              <g 
+                className="cursor-default"
+                onMouseEnter={() => setHoveredTeammate(mainTeammate)}
+                onMouseLeave={() => setHoveredTeammate(null)}
+              >
                 <defs>
-                  <clipPath id={`clip-${teammate.id}`}>
-                    <circle r="14" cx="0" cy="0" />
-                  </clipPath>
+                  {groupTeammates.map((teammate, index) => (
+                    <clipPath key={teammate.id} id={`clip-${teammate.id}`}>
+                      <circle r="12" cx="0" cy="0" />
+                    </clipPath>
+                  ))}
                 </defs>
                 
-                {/* Avatar background circle */}
-                <circle
-                  r={16}
-                  fill="white"
-                  stroke={isOnline ? "#22c55e" : "#ef4444"}
-                  strokeWidth={3}
-                  style={{
-                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
-                  }}
-                />
+                {/* Stacked avatars */}
+                {groupTeammates.slice(0, 3).map((teammate, index) => {
+                  const isOnline = getOnlineStatus(teammate) === "online"
+                  const offsetX = index * 8
+                  const offsetY = index * 2
+                  
+                  return (
+                    <g key={teammate.id} transform={`translate(${offsetX}, ${offsetY})`}>
+                      {/* Avatar background circle */}
+                      <circle
+                        r={14}
+                        fill="white"
+                        stroke={isOnline ? "#22c55e" : "#ef4444"}
+                        strokeWidth={2}
+                        style={{
+                          filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+                        }}
+                      />
+                      
+                      {/* Avatar image */}
+                      <foreignObject x={-12} y={-12} width={24} height={24} clipPath={`url(#clip-${teammate.id})`}>
+                        <div style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: '#f3f4f6'
+                        }}>
+                          <img
+                            src={teammate.avatar}
+                            alt={teammate.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                            onError={(e) => {
+                              e.target.style.display = 'none'
+                              e.target.nextSibling.style.display = 'flex'
+                            }}
+                          />
+                          <div style={{
+                            display: 'none',
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: '#6366f1',
+                            color: 'white',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 'bold',
+                            fontSize: '10px',
+                            fontFamily: 'system-ui'
+                          }}>
+                            {teammate.name.charAt(0).toUpperCase()}
+                          </div>
+                        </div>
+                      </foreignObject>
+                      
+                      {/* Status indicator dot */}
+                      <circle
+                        cx={10}
+                        cy={-10}
+                        r={3}
+                        fill={isOnline ? "#22c55e" : "#ef4444"}
+                        stroke="white"
+                        strokeWidth={1}
+                        style={{
+                          animation: isOnline ? "pulse 2s infinite" : "none",
+                          filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))"
+                        }}
+                      />
+                    </g>
+                  )
+                })}
                 
-                {/* Avatar image using foreignObject for better control */}
-                <foreignObject x={-14} y={-14} width={28} height={28} clipPath={`url(#clip-${teammate.id})`}>
-                  <div style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '50%',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#f3f4f6'
-                  }}>
-                    <img
-                      src={teammate.avatar}
-                      alt={teammate.name}
+                {/* Count indicator for more than 3 teammates */}
+                {groupTeammates.length > 3 && (
+                  <g transform={`translate(${24}, ${6})`}>
+                    <circle
+                      r={8}
+                      fill="#6b7280"
+                      stroke="white"
+                      strokeWidth={2}
                       style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
-                      onLoad={() => {
-                        console.log(`✅ Avatar loaded for ${teammate.name}: ${teammate.avatar}`)
-                      }}
-                      onError={(e) => {
-                        console.log(`❌ Avatar failed to load for ${teammate.name}: ${teammate.avatar}`)
-                        // Replace with initials
-                        e.target.style.display = 'none'
-                        e.target.nextSibling.style.display = 'flex'
+                        filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))"
                       }}
                     />
-                    <div style={{
-                      display: 'none',
-                      width: '100%',
-                      height: '100%',
-                      backgroundColor: '#6366f1',
-                      color: 'white',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 'bold',
-                      fontSize: '12px',
-                      fontFamily: 'system-ui'
-                    }}>
-                      {teammate.name.charAt(0).toUpperCase()}
-                    </div>
-                  </div>
-                </foreignObject>
-                
-                {/* Status indicator dot */}
-                <circle
-                  cx={12}
-                  cy={-12}
-                  r={4}
-                  fill={isOnline ? "#22c55e" : "#ef4444"}
-                  stroke="white"
-                  strokeWidth={2}
-                  style={{
-                    animation: isOnline ? "pulse 2s infinite" : "none",
-                    filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))"
-                  }}
-                />
+                    <text
+                      x={0}
+                      y={3}
+                      textAnchor="middle"
+                      fill="white"
+                      fontSize="8"
+                      fontWeight="bold"
+                      fontFamily="system-ui"
+                    >
+                      +{groupTeammates.length - 3}
+                    </text>
+                  </g>
+                )}
               </g>
             </Marker>
           )
         })}
       </ComposableMap>
       
-      {/* Selected teammate popup */}
-      {selectedTeammate && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
-          <div className="bg-background border border-border rounded-lg p-4 max-w-sm mx-4 shadow-xl">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-full overflow-hidden">
-                <img
-                  src={selectedTeammate.avatar}
-                  alt={selectedTeammate.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none'
-                    e.target.nextSibling.style.display = 'flex'
-                  }}
-                />
-                <div 
-                  className="w-full h-full bg-primary text-primary-foreground flex items-center justify-center font-bold"
-                  style={{display: 'none'}}
-                >
-                  {selectedTeammate.name.charAt(0).toUpperCase()}
-                </div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">{selectedTeammate.name}</h3>
-                <p className="text-sm text-muted-foreground">{selectedTeammate.role}</p>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Location:</span>
-                <span className="font-medium">{selectedTeammate.timezoneDisplay}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Time:</span>
-                <span className="font-mono font-medium">{formatTime(getTeammateLocalTime(selectedTeammate))}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <span className={`font-medium ${getOnlineStatus(selectedTeammate) === 'online' ? 'text-green-600' : 'text-red-600'}`}>
-                  {getOnlineStatus(selectedTeammate) === 'online' ? 'Online' : 'Offline'}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedTeammate(null)}
-              className="mt-4 w-full bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
       
       {/* Team Toggle - Bottom Right */}
       <div className="absolute bottom-4 right-4 z-10">
@@ -301,6 +428,115 @@ function WorldMap() {
           </svg>
         </button>
       </div>
+
+      {/* Country Hover Tooltip - Only show when teammates are hidden */}
+      {hoveredCountry && !showTeammates && (
+        <div 
+          className="absolute z-30 bg-background border border-border rounded-lg p-3 shadow-xl pointer-events-none max-w-xs"
+          style={{
+            left: mousePosition.x + 15,
+            top: mousePosition.y - 10,
+            transform: mousePosition.x > 400 ? 'translateX(-100%)' : 'none'
+          }}
+        >
+          <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+            <span className="text-lg">{getCountryFlag(hoveredCountry)}</span>
+            {hoveredCountry}
+          </h4>
+          <div className="space-y-1">
+            {getTeammatesByCountry(hoveredCountry).map((teammate) => {
+              const localTime = getTeammateLocalTime(teammate)
+              return (
+                <div key={teammate.id} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className="relative flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-0.5 shadow-sm">
+                        <img
+                          src={teammate.avatar}
+                          alt={teammate.name}
+                          className="w-full h-full object-cover rounded-full bg-gray-200 shadow-sm"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            e.target.nextSibling.style.display = 'flex'
+                          }}
+                        />
+                        <div 
+                          className="w-full h-full rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-sm"
+                          style={{display: 'none'}}
+                        >
+                          {teammate.name.charAt(0).toUpperCase()}
+                        </div>
+                      </div>
+                      <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-background shadow-sm ${
+                        getOnlineStatus(teammate) === "online" ? "bg-green-500" : "bg-red-500"
+                      }`}></span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium truncate">{teammate.name}</div>
+                      <div className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${getRoleColor(teammate.role)}`}>
+                        {teammate.role}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-xs font-mono font-semibold">{formatTime(localTime)}</div>
+                    <div className="text-xs text-muted-foreground">{teammate.timezoneDisplay}</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Avatar Hover Tooltip */}
+      {hoveredTeammate && (
+        <div 
+          className="absolute z-30 bg-background border border-border rounded-lg p-3 shadow-xl pointer-events-none"
+          style={{
+            left: mousePosition.x + 15,
+            top: mousePosition.y - 10,
+            transform: mousePosition.x > 300 ? 'translateX(-100%)' : 'none'
+          }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="relative flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-0.5 shadow-sm">
+                  <img
+                    src={hoveredTeammate.avatar}
+                    alt={hoveredTeammate.name}
+                    className="w-full h-full object-cover rounded-full bg-gray-200 shadow-sm"
+                    onError={(e) => {
+                      e.target.style.display = 'none'
+                      e.target.nextSibling.style.display = 'flex'
+                    }}
+                  />
+                  <div 
+                    className="w-full h-full rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-sm"
+                    style={{display: 'none'}}
+                  >
+                    {hoveredTeammate.name.charAt(0).toUpperCase()}
+                  </div>
+                </div>
+                <span className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border border-background shadow-sm ${
+                  getOnlineStatus(hoveredTeammate) === "online" ? "bg-green-500" : "bg-red-500"
+                }`}></span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-medium text-sm truncate">{hoveredTeammate.name}</h3>
+                <div className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${getRoleColor(hoveredTeammate.role)}`}>
+                  {hoveredTeammate.role}
+                </div>
+              </div>
+            </div>
+            <div className="text-right flex-shrink-0 ml-2">
+              <div className="text-sm font-mono font-semibold">{formatTime(getTeammateLocalTime(hoveredTeammate))}</div>
+              <div className="text-xs text-muted-foreground">{hoveredTeammate.timezoneDisplay}</div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <style jsx>{`
         @keyframes pulse {
