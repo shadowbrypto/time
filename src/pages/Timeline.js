@@ -1,5 +1,6 @@
 import { teammates, getTeammateLocalTime, formatTime, getOnlineStatus } from "../data/teammates"
 import { useState, useEffect } from "react"
+import WorldMap from "../components/WorldMap"
 
 function Timeline() {
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -68,6 +69,12 @@ function Timeline() {
             </div>
           )
         })}
+      </div>
+      
+      {/* World Map */}
+      <div className="space-y-3">
+        <h2 className="text-xl font-semibold">Team Locations</h2>
+        <WorldMap />
       </div>
       
     </div>
