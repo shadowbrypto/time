@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from "react-leaflet"
 import L from "leaflet"
 import { teammates, getTeammateLocalTime, formatTime, getOnlineStatus } from "../data/teammates"
 import "leaflet/dist/leaflet.css"
@@ -111,6 +111,34 @@ function ZoomHandler({ onZoomChange }) {
 function WorldMap() {
   const [showTeammates, setShowTeammates] = useState(true)
   const [zoomLevel, setZoomLevel] = useState(3)
+  const [countriesData, setCountriesData] = useState(null)
+  const [hoveredCountry, setHoveredCountry] = useState(null)
+
+  // Get countries that have team members
+  const countriesWithTeammates = new Set()
+  const teammatesByCountry = {}
+  teammates.forEach(teammate => {
+    const location = locationCoordinates[teammate.timezone]
+    if (location) {
+      countriesWithTeammates.add(location.country)
+      if (!teammatesByCountry[location.country]) {
+        teammatesByCountry[location.country] = []
+      }
+      teammatesByCountry[location.country].push(teammate)
+    }
+  })
+
+  // Load country boundaries
+  useEffect(() => {
+    fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson')
+      .then(response => response.json())
+      .then(data => {
+        setCountriesData(data)
+      })
+      .catch(error => {
+        console.error('Error loading country data:', error)
+      })
+  }, [])
 
   // Calculate marker size based on zoom level
   const getMarkerSize = (zoom) => {
@@ -121,6 +149,52 @@ function WorldMap() {
     setZoomLevel(zoom)
   }
 
+  // Style function for countries
+  const getCountryStyle = (feature) => {
+    const countryName = feature.properties.name
+    const hasTeammates = countriesWithTeammates.has(countryName)
+    
+    return {
+      fillColor: hasTeammates ? '#3b82f6' : '#e5e7eb',
+      weight: hasTeammates ? 2 : 1,
+      opacity: 0.8,
+      color: hasTeammates ? '#1d4ed8' : '#9ca3af',
+      fillOpacity: hasTeammates ? 0.3 : 0.1
+    }
+  }
+
+  // Handle country events
+  const onCountryHover = (e) => {
+    const layer = e.target
+    const countryName = layer.feature.properties.name
+    
+    if (countriesWithTeammates.has(countryName)) {
+      setHoveredCountry(countryName)
+      layer.setStyle({
+        weight: 3,
+        fillOpacity: 0.5
+      })
+    }
+  }
+
+  const onCountryMouseOut = (e) => {
+    const layer = e.target
+    setHoveredCountry(null)
+    layer.setStyle(getCountryStyle(layer.feature))
+  }
+
+  const onEachCountry = (feature, layer) => {
+    const countryName = feature.properties.name
+    const hasTeammates = countriesWithTeammates.has(countryName)
+    
+    if (hasTeammates) {
+      layer.on({
+        mouseover: onCountryHover,
+        mouseout: onCountryMouseOut
+      })
+    }
+  }
+
   return (
     <div className="w-full h-64 sm:h-80 lg:h-96 bg-card rounded-lg border border-border overflow-hidden relative">
       <MapContainer
@@ -128,9 +202,11 @@ function WorldMap() {
         zoom={3}
         className="w-full h-full"
         style={{ height: '100%', width: '100%' }}
-        worldCopyJump={true}
-        maxBounds={[[-90, -180], [90, 180]]}
+        worldCopyJump={false}
+        maxBounds={[[-85, -180], [85, 180]]}
         maxBoundsViscosity={1.0}
+        minZoom={2}
+        maxZoom={18}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -139,6 +215,15 @@ function WorldMap() {
         />
         
         <ZoomHandler onZoomChange={handleZoomChange} />
+        
+        {/* Country boundaries */}
+        {countriesData && (
+          <GeoJSON
+            data={countriesData}
+            style={getCountryStyle}
+            onEachFeature={onEachCountry}
+          />
+        )}
         
         {showTeammates && teammates.map((teammate) => {
           const location = locationCoordinates[teammate.timezone]
@@ -170,6 +255,52 @@ function WorldMap() {
         })}
       </MapContainer>
       
+      {/* Country Hover Tooltip */}
+      {hoveredCountry && teammatesByCountry[hoveredCountry] && (
+        <div className="absolute bottom-4 left-4 z-[1000] bg-background/95 backdrop-blur-sm border border-border rounded-lg p-3 max-w-xs shadow-lg">
+          <div className="text-sm font-semibold mb-2">{hoveredCountry}</div>
+          <div className="space-y-2">
+            {teammatesByCountry[hoveredCountry].map((teammate) => {
+              const localTime = getTeammateLocalTime(teammate)
+              const isOnline = getOnlineStatus(teammate) === "online"
+              
+              return (
+                <div key={teammate.id} className="flex items-center gap-2">
+                  <div className="relative">
+                    <img 
+                      src={teammate.avatar} 
+                      alt={teammate.name}
+                      className="w-6 h-6 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                        e.target.nextSibling.style.display = 'flex'
+                      }}
+                    />
+                    <div 
+                      className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold"
+                      style={{display: 'none'}}
+                    >
+                      {teammate.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-background ${
+                      isOnline ? "bg-green-500" : "bg-red-500"
+                    }`}></div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium truncate">{teammate.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{teammate.role}</div>
+                  </div>
+                  <div className="text-xs font-mono text-right">
+                    <div>{formatTime(localTime)}</div>
+                    <div className="text-muted-foreground">{teammate.timezoneDisplay}</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Team Toggle - Bottom Right */}
       <div className="absolute bottom-4 right-4 z-[1000]">
         <button
