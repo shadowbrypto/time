@@ -124,54 +124,61 @@ function WorldMap() {
             const localTime = getTeammateLocalTime(teammate)
             const isOnline = getOnlineStatus(teammate) === "online"
             
+            // Calculate scaled sizes based on zoom level
+            const baseSize = 12
+            const statusSize = 4
+            const scaledSize = Math.max(baseSize / position.zoom, 8) // Minimum size of 8
+            const scaledStatusSize = Math.max(statusSize / position.zoom, 2) // Minimum size of 2
+            const scaledStrokeWidth = Math.max(1 / position.zoom, 0.5) // Minimum stroke width
+            
             return (
               <Marker key={teammate.id} coordinates={coordinates}>
                 <g>
-                  {/* Outer ring for online/offline status */}
-                  <circle
-                    r={18}
-                    fill={isOnline ? "#10B981" : "hsl(var(--destructive))"}
-                    fillOpacity={0.2}
-                    stroke={isOnline ? "#10B981" : "hsl(var(--destructive))"}
-                    strokeWidth={2}
-                  />
-                  
                   {/* Avatar container */}
                   <circle
-                    r={12}
+                    r={scaledSize}
                     fill="hsl(var(--background))"
                     stroke="hsl(var(--border))"
-                    strokeWidth={1}
-                    clipPath="url(#avatar-clip)"
+                    strokeWidth={scaledStrokeWidth}
                   />
                   
                   {/* Define clip path for circular avatar */}
                   <defs>
                     <clipPath id={`avatar-clip-${teammate.id}`}>
-                      <circle r={12} />
+                      <circle r={scaledSize} />
                     </clipPath>
                   </defs>
                   
                   {/* Avatar image */}
                   <image
                     href={teammate.avatar}
-                    x={-12}
-                    y={-12}
-                    width={24}
-                    height={24}
+                    x={-scaledSize}
+                    y={-scaledSize}
+                    width={scaledSize * 2}
+                    height={scaledSize * 2}
                     clipPath={`url(#avatar-clip-${teammate.id})`}
                     style={{
                       objectFit: "cover",
                     }}
                   />
                   
+                  {/* Online/offline status dot */}
+                  <circle
+                    cx={scaledSize * 0.7}
+                    cy={-scaledSize * 0.7}
+                    r={scaledStatusSize}
+                    fill={isOnline ? "#10B981" : "#EF4444"}
+                    stroke="hsl(var(--background))"
+                    strokeWidth={scaledStrokeWidth}
+                  />
+                  
                   {/* Fallback initial if image fails */}
                   <text
                     textAnchor="middle"
-                    y={3}
+                    y={scaledSize * 0.3}
                     style={{
                       fontFamily: "system-ui",
-                      fontSize: "10px",
+                      fontSize: `${Math.max(scaledSize * 0.8, 8)}px`,
                       fontWeight: "bold",
                       fill: "hsl(var(--foreground))",
                       display: "none",
