@@ -62,82 +62,48 @@ function WorldMap() {
 
   return (
     <div className="w-full h-64 sm:h-80 lg:h-96 bg-card rounded-lg border border-border p-2 sm:p-4 overflow-hidden relative">
-      {/* Controls */}
-      <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-        {/* Zoom Controls */}
-        <div className="flex flex-col gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-md p-1">
-          <button
-            onClick={handleZoomIn}
-            className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
-            title="Zoom In"
-          >
-            +
-          </button>
-          <button
-            onClick={handleZoomOut}
-            className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
-            title="Zoom Out"
-          >
-            −
-          </button>
-          <button
-            onClick={handleReset}
-            className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-xs font-bold"
-            title="Reset View"
-          >
-            ⌂
-          </button>
-        </div>
-        
-        {/* Team Toggle */}
-        <div className="bg-background/80 backdrop-blur-sm border border-border rounded-md p-2">
-          <button
-            onClick={() => setShowTeammates(!showTeammates)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200 ${
-              showTeammates 
-                ? 'bg-primary text-primary-foreground shadow-sm' 
-                : 'hover:bg-accent text-muted-foreground hover:text-foreground'
-            }`}
-            title={showTeammates ? "Hide Team Members" : "Show Team Members"}
-          >
-            <div className="w-4 h-4 flex items-center justify-center">
-              {showTeammates ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                  <path d="M1 1l22 22"/>
-                </svg>
-              )}
-            </div>
-            <span className="whitespace-nowrap">
-              {showTeammates ? 'Hide Members' : 'Show Members'}
-            </span>
-          </button>
-        </div>
+      {/* Zoom Controls */}
+      <div className="absolute top-4 right-4 z-10 flex flex-col gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-md p-1">
+        <button
+          onClick={handleZoomIn}
+          className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
+          title="Zoom In"
+        >
+          +
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-sm font-bold"
+          title="Zoom Out"
+        >
+          −
+        </button>
+        <button
+          onClick={handleReset}
+          className="w-8 h-8 flex items-center justify-center hover:bg-accent rounded text-xs font-bold"
+          title="Reset View"
+        >
+          ⌂
+        </button>
       </div>
       
-      {/* Legend */}
-      <div className="absolute bottom-4 right-4 z-10 bg-background/90 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg">
-        <div className="text-xs font-medium text-foreground mb-2">Legend</div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs">
-            <div className="w-3 h-3 rounded-sm bg-primary/30 border border-primary/50"></div>
-            <span className="text-muted-foreground">Countries with team members</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-muted-foreground">Online</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-muted-foreground">Offline</span>
-          </div>
-        </div>
+      {/* Team Toggle - Bottom Right */}
+      <div className="absolute bottom-4 right-4 z-10">
+        <button
+          onClick={() => setShowTeammates(!showTeammates)}
+          className={`w-10 h-10 rounded-full border shadow-lg transition-all duration-200 flex items-center justify-center ${
+            showTeammates 
+              ? 'bg-primary text-primary-foreground border-primary/20 shadow-primary/20' 
+              : 'bg-background/90 text-muted-foreground border-border hover:bg-accent hover:text-foreground'
+          }`}
+          title={showTeammates ? "Hide Team Members" : "Show Team Members"}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+            {!showTeammates && <path d="M1 1l22 22"/>}
+          </svg>
+        </button>
       </div>
       
       {/* Country Hover Tooltip */}
