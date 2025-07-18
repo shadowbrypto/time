@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { cn } from "../lib/utils"
 import { Button } from "./ui/button"
 import { useTheme } from "./theme-provider"
+import { useNavigate, useLocation } from "react-router-dom"
 
 const menuItems = [
   {
@@ -19,6 +20,8 @@ const menuItems = [
 export function Sidebar({ className }) {
   const [collapsed, setCollapsed] = useState(false)
   const { theme, setTheme } = useTheme()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   // Auto-collapse on mobile screens
   useEffect(() => {
@@ -62,20 +65,16 @@ export function Sidebar({ className }) {
         {menuItems.map((item) => (
           <Button
             key={item.href}
-            variant="ghost"
+            variant={location.pathname === item.href ? "secondary" : "ghost"}
             className={cn(
               "w-full justify-start",
               collapsed ? "px-2" : "px-4"
             )}
+            onClick={() => navigate(item.href)}
           >
             <span className="text-lg">{item.icon}</span>
             {!collapsed && (
               <span className="ml-3 text-sm">{item.title}</span>
-            )}
-            {!collapsed && item.title === "Scheduler" && (
-              <span className="ml-auto px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-md border">
-                Soon
-              </span>
             )}
           </Button>
         ))}

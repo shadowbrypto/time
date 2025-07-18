@@ -127,6 +127,18 @@ export const teammates = [
       end: "22:00"
     }
   },
+  {
+    id: 15,
+    name: "Shadow",
+    role: "Dashboard Guy",
+    timezone: "Europe/Berlin",
+    timezoneDisplay: "Munich",
+    avatar: "/assets/avatars/shadow.jpg",
+    workingHours: {
+      start: "08:00",
+      end: "22:00"
+    }
+  },
   // PR
   {
     id: 9,
