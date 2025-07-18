@@ -24,7 +24,10 @@ function WorldMap() {
   const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 })
 
   const handleMoveEnd = (position) => {
-    setPosition(position)
+    setPosition({
+      coordinates: position.coordinates,
+      zoom: position.zoom
+    })
   }
 
   const handleZoomIn = () => {
@@ -86,6 +89,14 @@ function WorldMap() {
           zoom={position.zoom}
           center={position.coordinates}
           onMoveEnd={handleMoveEnd}
+          onMoveStart={() => {}} // Ensure all zoom events are captured
+          onMove={(position) => {
+            // Update position during move for smooth scaling
+            setPosition({
+              coordinates: position.coordinates,
+              zoom: position.zoom
+            })
+          }}
           maxZoom={8}
           minZoom={0.5}
         >
@@ -124,12 +135,13 @@ function WorldMap() {
             const localTime = getTeammateLocalTime(teammate)
             const isOnline = getOnlineStatus(teammate) === "online"
             
-            // Calculate scaled sizes based on zoom level
-            const baseSize = 12
-            const statusSize = 4
-            const scaledSize = Math.max(baseSize / position.zoom, 8) // Minimum size of 8
-            const scaledStatusSize = Math.max(statusSize / position.zoom, 2) // Minimum size of 2
-            const scaledStrokeWidth = Math.max(1 / position.zoom, 0.5) // Minimum stroke width
+            // Calculate scaled sizes based on current zoom level
+            const baseSize = 15
+            const statusSize = 5
+            const currentZoom = position.zoom
+            const scaledSize = Math.max(baseSize / Math.sqrt(currentZoom), 6) // Minimum size of 6, sqrt for smoother scaling
+            const scaledStatusSize = Math.max(statusSize / Math.sqrt(currentZoom), 2) // Minimum size of 2
+            const scaledStrokeWidth = Math.max(1.5 / Math.sqrt(currentZoom), 0.3) // Minimum stroke width
             
             return (
               <Marker key={teammate.id} coordinates={coordinates}>
