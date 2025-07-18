@@ -90,32 +90,59 @@ function WorldMap() {
         </div>
         
         {/* Team Toggle */}
-        <div className="bg-background/80 backdrop-blur-sm border border-border rounded-md p-1">
+        <div className="bg-background/80 backdrop-blur-sm border border-border rounded-md p-2">
           <button
             onClick={() => setShowTeammates(!showTeammates)}
-            className={`w-8 h-8 flex items-center justify-center rounded text-xs font-bold transition-colors ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200 ${
               showTeammates 
-                ? 'bg-primary text-primary-foreground' 
-                : 'hover:bg-accent'
+                ? 'bg-primary text-primary-foreground shadow-sm' 
+                : 'hover:bg-accent text-muted-foreground hover:text-foreground'
             }`}
             title={showTeammates ? "Hide Team Members" : "Show Team Members"}
           >
-            👥
+            <div className="w-4 h-4 flex items-center justify-center">
+              {showTeammates ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                  <path d="M1 1l22 22"/>
+                </svg>
+              )}
+            </div>
+            <span className="whitespace-nowrap">
+              {showTeammates ? 'Hide Members' : 'Show Members'}
+            </span>
           </button>
         </div>
       </div>
       
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 z-10 bg-background/80 backdrop-blur-sm border border-border rounded-md p-2">
-        <div className="flex items-center gap-2 text-xs">
-          <div className="w-3 h-3 rounded-sm bg-primary/30 border border-primary/50"></div>
-          <span>Countries with team members</span>
+      <div className="absolute bottom-4 right-4 z-10 bg-background/90 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg">
+        <div className="text-xs font-medium text-foreground mb-2">Legend</div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-xs">
+            <div className="w-3 h-3 rounded-sm bg-primary/30 border border-primary/50"></div>
+            <span className="text-muted-foreground">Countries with team members</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <span className="text-muted-foreground">Online</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <span className="text-muted-foreground">Offline</span>
+          </div>
         </div>
       </div>
       
       {/* Country Hover Tooltip */}
       {hoveredCountry && teammatesByCountry[hoveredCountry] && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-background/95 backdrop-blur-sm border border-border rounded-lg p-3 max-w-xs">
+        <div className="absolute bottom-4 left-4 z-20 bg-background/95 backdrop-blur-sm border border-border rounded-lg p-3 max-w-xs shadow-lg">
           <div className="text-sm font-semibold mb-2">{hoveredCountry}</div>
           <div className="space-y-2">
             {teammatesByCountry[hoveredCountry].map((teammate) => {
