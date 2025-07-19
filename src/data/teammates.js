@@ -19,7 +19,7 @@ export const teammates = [
   {
     id: 1,
     name: "Gambloor",
-    role: "COO",
+    role: "Operations & PM",
     timezone: "America/New_York",
     timezoneDisplay: "New York",
     avatar: "/assets/avatars/gambloor.jpg",
