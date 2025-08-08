@@ -16,6 +16,7 @@ const locationCoordinates = {
   "Europe/Berlin": [13.4050, 52.5200],
   "America/Chicago": [-87.6298, 41.8781],
   "Europe/Warsaw": [21.0122, 52.2297],
+  "Asia/Seoul": [126.9780, 37.5665],
 }
 
 function WorldMap() {
@@ -88,6 +89,12 @@ function WorldMap() {
             countries.add("Republic of Poland")
             countries.add("POL")
             break
+          case "Asia/Seoul":
+            countries.add("South Korea")
+            countries.add("Republic of Korea")
+            countries.add("Korea, Republic of")
+            countries.add("KOR")
+            break
           default:
             break
         }
@@ -135,7 +142,11 @@ function WorldMap() {
       'United Arab Emirates': '🇦🇪',
       'UAE': '🇦🇪',
       'U.A.E.': '🇦🇪',
-      'ARE': '🇦🇪'
+      'ARE': '🇦🇪',
+      'South Korea': '🇰🇷',
+      'Republic of Korea': '🇰🇷',
+      'Korea, Republic of': '🇰🇷',
+      'KOR': '🇰🇷'
     }
     return flagMap[countryName] || '🏳️'
   }
@@ -167,6 +178,8 @@ function WorldMap() {
           return ["Germany", "Federal Republic of Germany", "Deutschland", "DEU"].includes(countryName)
         case "Europe/Warsaw":
           return ["Poland", "Republic of Poland", "POL"].includes(countryName)
+        case "Asia/Seoul":
+          return ["South Korea", "Republic of Korea", "Korea, Republic of", "KOR"].includes(countryName)
         default:
           return false
       }
