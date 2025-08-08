@@ -188,6 +188,19 @@ export const teammates = [
       start: "08:00",
       end: "22:00"
     }
+  },
+  // Legal
+  {
+    id: 16,
+    name: "Chloe Lee",
+    role: "Legal",
+    timezone: "Asia/Seoul",
+    timezoneDisplay: "South Korea",
+    avatar: "/assets/avatars/chloe.jpg",
+    workingHours: {
+      start: "08:00",
+      end: "22:00"
+    }
   }
 ];
 
@@ -278,7 +291,8 @@ export const getRoleColor = (role) => {
     'Dashboard Guy': 'bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-300 border-teal-200 dark:border-teal-800',
     'BD': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 border-green-200 dark:border-green-800',
     'PR': 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300 border-orange-200 dark:border-orange-800',
-    'Support': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800'
+    'Support': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800',
+    'Legal': 'bg-violet-100 text-violet-800 dark:bg-violet-900/20 dark:text-violet-300 border-violet-200 dark:border-violet-800'
   };
   return roleColors[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300 border-gray-200 dark:border-gray-800';
 };
