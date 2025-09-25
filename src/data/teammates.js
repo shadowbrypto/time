@@ -154,11 +154,11 @@ export const teammates = [
   },
   {
     id: 14,
-    name: "Shyla",
-    role: "PR",
-    timezone: "Europe/London",
-    timezoneDisplay: "UK",
-    avatar: "/assets/avatars/shyla.jpg",
+    name: "Mego",
+    role: "Marketing Team",
+    timezone: "America/Vancouver",
+    timezoneDisplay: "Vancouver",
+    avatar: "/assets/avatars/mego.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
