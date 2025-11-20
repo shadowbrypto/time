@@ -6,17 +6,16 @@ import { teammates, getTeammateLocalTime, formatTime, getOnlineStatus, getRoleCo
 const locationCoordinates = {
   "Asia/Dubai": [55.2708, 25.2048],
   "America/New_York": [-74.0059, 40.7128],
-  "Europe/Zurich": [8.5417, 47.3769],
+  "Africa/Johannesburg": [28.0473, -26.2041],
   "Europe/Paris": [2.3522, 48.8566],
   "Europe/London": [-0.1276, 51.5074],
   "Pacific/Honolulu": [-157.8583, 21.3099],
-  "America/Los_Angeles": [-118.2437, 34.0522],
   "America/Argentina/Buenos_Aires": [-58.3816, -34.6037],
   "Europe/Sofia": [23.3219, 42.6977],
   "Europe/Berlin": [13.4050, 52.5200],
   "America/Chicago": [-87.6298, 41.8781],
+  "America/Vancouver": [-123.1207, 49.2827],
   "Europe/Warsaw": [21.0122, 52.2297],
-  "Asia/Seoul": [126.9780, 37.5665],
 }
 
 function WorldMap() {
@@ -41,7 +40,6 @@ function WorldMap() {
             break
           case "America/New_York":
           case "Pacific/Honolulu":
-          case "America/Los_Angeles":
           case "America/Chicago":
             countries.add("United States of America")
             countries.add("United States")
@@ -50,10 +48,10 @@ function WorldMap() {
             countries.add("US")
             countries.add("America")
             break
-          case "Europe/Zurich":
-            countries.add("Switzerland")
-            countries.add("Swiss Confederation")
-            countries.add("CHE")
+          case "Africa/Johannesburg":
+            countries.add("South Africa")
+            countries.add("Republic of South Africa")
+            countries.add("ZAF")
             break
           case "Europe/Paris":
             countries.add("France")
@@ -67,6 +65,10 @@ function WorldMap() {
             countries.add("Great Britain")
             countries.add("Britain")
             countries.add("GBR")
+            break
+          case "America/Vancouver":
+            countries.add("Canada")
+            countries.add("CAN")
             break
           case "America/Argentina/Buenos_Aires":
             countries.add("Argentina")
@@ -88,12 +90,6 @@ function WorldMap() {
             countries.add("Poland")
             countries.add("Republic of Poland")
             countries.add("POL")
-            break
-          case "Asia/Seoul":
-            countries.add("South Korea")
-            countries.add("Republic of Korea")
-            countries.add("Korea, Republic of")
-            countries.add("KOR")
             break
           default:
             break
@@ -127,9 +123,6 @@ function WorldMap() {
       'Federal Republic of Germany': '🇩🇪',
       'Deutschland': '🇩🇪',
       'DEU': '🇩🇪',
-      'Switzerland': '🇨🇭',
-      'Swiss Confederation': '🇨🇭',
-      'CHE': '🇨🇭',
       'Poland': '🇵🇱',
       'Republic of Poland': '🇵🇱',
       'POL': '🇵🇱',
@@ -143,10 +136,11 @@ function WorldMap() {
       'UAE': '🇦🇪',
       'U.A.E.': '🇦🇪',
       'ARE': '🇦🇪',
-      'South Korea': '🇰🇷',
-      'Republic of Korea': '🇰🇷',
-      'Korea, Republic of': '🇰🇷',
-      'KOR': '🇰🇷'
+      'South Africa': '🇿🇦',
+      'Republic of South Africa': '🇿🇦',
+      'ZAF': '🇿🇦',
+      'Canada': '🇨🇦',
+      'CAN': '🇨🇦'
     }
     return flagMap[countryName] || '🏳️'
   }
@@ -161,15 +155,16 @@ function WorldMap() {
           return ["United Arab Emirates", "UAE", "U.A.E.", "ARE"].includes(countryName)
         case "America/New_York":
         case "Pacific/Honolulu":
-        case "America/Los_Angeles":
         case "America/Chicago":
           return ["United States of America", "United States", "USA", "U.S.A.", "US", "America"].includes(countryName)
-        case "Europe/Zurich":
-          return ["Switzerland", "Swiss Confederation", "CHE"].includes(countryName)
+        case "Africa/Johannesburg":
+          return ["South Africa", "Republic of South Africa", "ZAF"].includes(countryName)
         case "Europe/Paris":
           return ["France", "French Republic", "FRA"].includes(countryName)
         case "Europe/London":
           return ["United Kingdom", "UK", "U.K.", "Great Britain", "Britain", "GBR"].includes(countryName)
+        case "America/Vancouver":
+          return ["Canada", "CAN"].includes(countryName)
         case "America/Argentina/Buenos_Aires":
           return ["Argentina", "Argentine Republic", "ARG"].includes(countryName)
         case "Europe/Sofia":
@@ -178,8 +173,6 @@ function WorldMap() {
           return ["Germany", "Federal Republic of Germany", "Deutschland", "DEU"].includes(countryName)
         case "Europe/Warsaw":
           return ["Poland", "Republic of Poland", "POL"].includes(countryName)
-        case "Asia/Seoul":
-          return ["South Korea", "Republic of Korea", "Korea, Republic of", "KOR"].includes(countryName)
         default:
           return false
       }
