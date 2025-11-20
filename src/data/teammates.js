@@ -32,9 +32,9 @@ export const teammates = [
   {
     id: 2,
     name: "Redux",
-    role: "Operations & PM", 
-    timezone: "Europe/Zurich",
-    timezoneDisplay: "Zurich",
+    role: "Operations & PM",
+    timezone: "Africa/Johannesburg",
+    timezoneDisplay: "South Africa",
     avatar: "/assets/avatars/redux.jpg",
     workingHours: {
       start: "08:00",
@@ -74,18 +74,6 @@ export const teammates = [
     timezone: "Pacific/Honolulu",
     timezoneDisplay: "Hawaii",
     avatar: "/assets/avatars/boom.jpg",
-    workingHours: {
-      start: "08:00",
-      end: "22:00"
-    }
-  },
-  {
-    id: 5,
-    name: "Trancey",
-    role: "BD",
-    timezone: "America/Los_Angeles",
-    timezoneDisplay: "Los Angeles",
-    avatar: "/assets/avatars/trancey.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
@@ -184,19 +172,6 @@ export const teammates = [
     timezone: "Europe/Warsaw",
     timezoneDisplay: "Poland",
     avatar: "/assets/avatars/cali.jpg",
-    workingHours: {
-      start: "08:00",
-      end: "22:00"
-    }
-  },
-  // Legal
-  {
-    id: 16,
-    name: "Chloe Lee",
-    role: "Legal",
-    timezone: "Asia/Seoul",
-    timezoneDisplay: "South Korea",
-    avatar: "/assets/avatars/chloe.jpg",
     workingHours: {
       start: "08:00",
       end: "22:00"
