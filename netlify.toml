@@ -14,13 +14,15 @@
   status = 200
 
 # Security headers for every response.
-# The app loads nothing from other origins: scripts, styles, images and map
-# data are all served from this site. Inline styles are allowed because React
+# Scripts, styles, images and map data are all served from this site. The one
+# exception is the photo of the viewer's city in the sidebar, which comes from
+# Wikipedia: its API (en.wikipedia.org) and its image hosts (thumb.wikimedia.org,
+# upload.wikimedia.org). Inline styles are allowed because React
 # sets element styles (positions, sizes); inline scripts are not.
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://thumb.wikimedia.org https://upload.wikimedia.org; font-src 'self'; connect-src 'self' https://en.wikipedia.org; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"

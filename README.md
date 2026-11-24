@@ -25,7 +25,7 @@ The contact handles in the repository are placeholders. Telegram and X handles b
 ## How it is built
 
 - React 19 built with Vite, Tailwind CSS, React Router. Tests run on Vitest.
-- No backend and no third-party requests at runtime: scripts, styles, images and map data are all served from the site itself.
+- No backend. Scripts, styles, images and map data are all served from the site itself. The only request to another site is for the photo of your own city in the sidebar, which comes from Wikipedia (no API key; the result is cached in the browser).
 - Time maths is in `src/lib/time.js` and uses the browser's `Intl` data, so daylight saving is handled automatically.
 - The look (colour tokens, what light and dark surfaces mean) is documented at the top of `src/index.css`.
 

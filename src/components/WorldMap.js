@@ -224,7 +224,7 @@ function FilterLabel({ item, count }) {
   )
 }
 
-const filterOption = "flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium"
+const filterOption = "flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium"
 
 function WorldMap({ now, people }) {
   // The filter lives in the URL with the rest of the page's state.

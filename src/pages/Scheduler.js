@@ -472,7 +472,7 @@ function Scheduler() {
                   key={item.start}
                   type="button"
                   onClick={() => pick(item)}
-                  className="time-numerals inline-flex h-10 items-center justify-center whitespace-nowrap rounded-full bg-primary px-3 text-[14px] font-semibold text-primary-foreground transition-[filter] hover:brightness-95 active:brightness-90 sm:px-4 sm:text-[15px]"
+                  className="time-numerals inline-flex h-10 items-center justify-center whitespace-nowrap rounded-full bg-primary px-3 text-[15px] font-semibold text-primary-foreground transition-[filter] hover:brightness-95 active:brightness-90 sm:px-4 sm:text-[15px]"
                 >
                   Pick {formatMinuteRange(item.start * SLOT_MINUTES, (item.end + 1) * SLOT_MINUTES)}
                 </button>
@@ -672,7 +672,7 @@ function Scheduler() {
                         </p>
                         <p
                           className={cn(
-                            "time-numerals mt-0.5 flex items-center gap-1 text-[11px] leading-tight sm:text-[12px]",
+                            "time-numerals mt-0.5 flex items-center gap-1 text-[12px] leading-tight sm:text-[13px]",
                             selection ? "text-foreground" : "text-muted-foreground"
                           )}
                         >
@@ -828,7 +828,7 @@ function Scheduler() {
             <span className="hidden sm:flex">
               <Facepile people={footer.invited.map((participant) => participant.teammate)} max={5} size={32} />
             </span>
-            <p className="min-w-0 text-[12px] text-muted-foreground sm:text-[13px]">
+            <p className="min-w-0 text-[13px] text-muted-foreground">
               <span className="time-numerals block truncate text-[15px] font-semibold text-foreground">
                 {footer.rangeLabel}
               </span>

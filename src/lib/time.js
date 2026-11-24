@@ -189,6 +189,21 @@ export const describeDayShift = (dayShift) =>
 // Browsers still report a few legacy zone names.
 const cityAliases = { Calcutta: "Kolkata", Saigon: "Ho Chi Minh City", Kiev: "Kyiv", Katmandu: "Kathmandu" }
 
+// A city in a few capitals, for where there is no room for its name:
+// "Berlin" is "BER", "New York" is "NY", "Ho Chi Minh City" is "HCMC".
+export function shortPlace(place) {
+  const words = place.split(/[\s-]+/).filter(Boolean)
+  if (words.length === 0) return ""
+  if (words.length === 1) return words[0].slice(0, 3).toUpperCase()
+  return words.map((word) => word[0]).join("").slice(0, 4).toUpperCase()
+}
+
+// The viewer's city, or "" when their zone is not a place (UTC, Etc/GMT+5).
+export function viewerCity() {
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+  return zone.includes("/") && !zone.startsWith("Etc/") ? viewerPlace() : ""
+}
+
 export function viewerPlace() {
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ""
   const city = zone.split("/").pop().replace(/_/g, " ")

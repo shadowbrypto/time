@@ -1,4 +1,4 @@
-import { daylight, describeDayShift, describeOffset, formatHour, formatHourRange, formatMinuteRange, isWorkingAt, listNames, minutesUntil } from './time';
+import { daylight, describeDayShift, describeOffset, formatHour, formatHourRange, formatMinuteRange, isWorkingAt, listNames, minutesUntil, shortPlace } from './time';
 
 const teammate = { workingHours: { start: '08:00', end: '22:00' } };
 
@@ -71,4 +71,12 @@ test('lists names, folding a long list into "and N others"', () => {
   expect(listNames(['Idris', 'Thabo'])).toBe('Idris and Thabo');
   expect(listNames(['Idris', 'Thabo', 'Priya'])).toBe('Idris, Thabo and Priya');
   expect(listNames(['Idris', 'Thabo', 'Priya', 'Kai', 'Zofia'])).toBe('Idris, Thabo and 3 others');
+});
+
+test('shortens a city to a few capitals', () => {
+  expect(shortPlace('Berlin')).toBe('BER');
+  expect(shortPlace('New York')).toBe('NY');
+  expect(shortPlace('Ho Chi Minh City')).toBe('HCMC');
+  expect(shortPlace('Port-au-Prince')).toBe('PAP');
+  expect(shortPlace('')).toBe('');
 });

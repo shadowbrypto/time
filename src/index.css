@@ -118,6 +118,9 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-size: 15px;
     line-height: 1.4;
+    /* The straight-stemmed 6 and 9 the clock numerals use, on all text, so a
+       "6" in a sentence matches the "6:53" beside it. */
+    font-feature-settings: "cv01" 1;
   }
 
   h1,

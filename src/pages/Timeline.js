@@ -236,7 +236,7 @@ function Timeline() {
                   >
                     <div className="flex shrink-0 items-center justify-between gap-3 sm:block sm:w-[264px]">
                       <h3 className="flex shrink-0 items-baseline gap-1 leading-none">
-                        <span className="time-numerals text-[28px] font-light tracking-[-0.025em] sm:text-[34px]">
+                        <span className="time-numerals text-[34px] font-light tracking-[-0.025em]">
                           {group.clock.digits}
                         </span>
                         {group.clock.period && <span className="text-[13px] font-medium">{group.clock.period}</span>}
@@ -245,7 +245,7 @@ function Timeline() {
                         )}
                         <span className="sr-only">{group.working ? ", in working hours" : ", off hours"}</span>
                       </h3>
-                      <p className={cn("min-w-0 text-right text-[12px] leading-snug sm:mt-1.5 sm:text-left sm:text-[13px]", muted)}>
+                      <p className={cn("min-w-0 text-right text-[13px] leading-snug sm:mt-1.5 sm:text-left", muted)}>
                         <span className="block truncate sm:inline">{group.places}</span>
                         <span className="hidden sm:inline">, </span>
                         <span className="block truncate sm:inline">{group.relative}</span>
@@ -267,7 +267,7 @@ function Timeline() {
                               {teammate.name}
                             </h4>
                             <ContactHandle teammate={teammate} className={cn("min-w-0 sm:mt-0.5", muted)} />
-                            <p className={cn("ml-auto shrink-0 truncate text-[12px] sm:ml-0 sm:text-[13px]", muted)}>
+                            <p className={cn("ml-auto shrink-0 truncate text-[13px] sm:ml-0", muted)}>
                               {teammate.role}
                             </p>
                           </div>
@@ -285,7 +285,6 @@ function Timeline() {
       <section className="space-y-3">
         <div>
           <h2 className="text-[20px] font-semibold tracking-[-0.01em]">Where everyone is</h2>
-          <p className="mt-0.5 text-[13px] text-muted-foreground">The shaded side is in night right now.</p>
         </div>
         <WorldMap now={now} people={people} />
       </section>

@@ -16,7 +16,7 @@ Guidance for Claude Code when working in this repository.
 - **Timeline** (`src/pages/Timeline.js`) — headline naming who is at work, teammate cards by role or by local time, and the world map.
 - **Scheduler** (`src/pages/Scheduler.js`) — pick people, drag a time range on a shared 24-hour grid; the headline gives the verdict. People and the picked range are kept in the URL.
 
-There is no backend and no runtime request to another origin.
+There is no backend. The only runtime request to another origin is the sidebar's city photo, from Wikipedia (`src/lib/city-photo.js`).
 
 ## Layout
 
@@ -36,6 +36,7 @@ There is no backend and no runtime request to another origin.
 - `src/components/icons.js` — filled navigation glyphs and the shared lucide icon settings
 - `src/components/motion.js` — enter/exit and swap helpers (`usePresence`, `useListPresence`, `Swap`) and the sliding thumb of segmented controls (`useThumb`)
 - `src/lib/time.js` — minute clock (`useNow`), offsets, `Intl` formatting (times, hours, numbers, name lists, "All day"), the time-of-day surface (`surfaceFor`)
+- `src/lib/city-photo.js` — `useCityPhoto`: a keyless Wikipedia lookup for a photo of the viewer's city, cached in localStorage
 - `src/lib/ranges.js` — the Scheduler grid's slot ranges: joining runs, keyboard steps
 - `src/data/teammates.js` — the roster
 
@@ -56,7 +57,7 @@ The look is Apple World Clock. The rules are written at the top of `src/index.cs
 ## Security and privacy
 
 - Never commit secrets. There is no `.env` file; the build needs none. Scan before committing.
-- Keep everything same-origin: `netlify.toml` sets a strict Content-Security-Policy (`script-src 'self'`, `connect-src 'self'`). A new CDN, font host or API needs that policy updated deliberately.
+- Keep everything same-origin: `netlify.toml` sets a strict Content-Security-Policy (`script-src 'self'`; `connect-src` and `img-src` allow only this site plus Wikipedia's API and image host for the city photo). A new CDN, font host or API needs that policy updated deliberately.
 - No inline `<script>` in `index.html` (the CSP forbids it). Vite emits external module scripts only; `theme-init.js` stays a plain external script so it runs before first paint. Source maps are off in `vite.config.mjs`.
 - External links use `target="_blank"` with `rel="noopener noreferrer"`.
 - Teammate names and handles in the roster are invented placeholders.
