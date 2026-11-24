@@ -1,11 +1,36 @@
+# Vite builds into build/ (see vite.config.mjs). Netlify installs the
+# dependencies itself; .npmrc carries the install flags.
 [build]
   publish = "build"
-  command = "npm install --legacy-peer-deps && CI=false npm run build"
+  command = "npm run build"
 
+# Vite 6 and Vitest 4 need Node 20 or later.
 [build.environment]
-  CI = "false"
+  NODE_VERSION = "20"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Security headers for every response.
+# The app loads nothing from other origins: scripts, styles, images and map
+# data are all served from this site. Inline styles are allowed because React
+# sets element styles (positions, sizes); inline scripts are not.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+
+# Fingerprinted build assets (Vite's assetsDir) never change.
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

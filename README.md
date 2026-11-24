@@ -1,70 +1,40 @@
-# Getting Started with Create React App
+# Teamline
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+See what time it is for each teammate, and find a meeting time that works across time zones.
 
-## Available Scripts
+- **Timeline** — who is at work right now, everyone's local time (by role or by local time), their preferred contact handle, and a world map with the night side shaded.
+- **Scheduler** — pick people, then drag across the day. It tells you in words whether the time works, who it misses, and what time it is for each person. The plan lives in the URL, so it can be shared.
 
-In the project directory, you can run:
+## Run it
 
-### `npm start`
+```sh
+npm install
+npm start        # http://localhost:3000
+npm test         # watch mode; add `-- --run` to run once
+npm run build    # production build in build/ (`npm run preview` serves it)
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Requires Node 20 or later.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## The team roster
 
-### `npm test`
+People are listed in `src/data/teammates.js`: name, role, IANA time zone, display place, avatar, working hours and one preferred contact (`telegram`, `slack` or `twitter`).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The contact handles in the repository are placeholders. Telegram and X handles become live links (`t.me/…`, `x.com/…`), so replace them with real ones before sharing the app.
 
-### `npm run build`
+## How it is built
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- React 19 built with Vite, Tailwind CSS, React Router. Tests run on Vitest.
+- No backend and no third-party requests at runtime: scripts, styles, images and map data are all served from the site itself.
+- Time maths is in `src/lib/time.js` and uses the browser's `Intl` data, so daylight saving is handled automatically.
+- The look (colour tokens, what light and dark surfaces mean) is documented at the top of `src/index.css`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Deployment
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Configured for Netlify in `netlify.toml`: build command, single-page-app redirect, and security headers (Content-Security-Policy, HSTS, no framing, no MIME sniffing).
 
-### `npm run eject`
+The build needs no environment file. Never commit API keys; `.env` and `.env.local` are ignored by git.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Credits
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Brand marks and map data are listed with their sources and licenses in `public/assets/brands/SOURCES.md` and `public/assets/geo/SOURCES.md`.

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Teamline: the app's filled clock glyph (src/components/icons.js) on a plain rounded square. -->
+  <rect width="32" height="32" rx="7.2" fill="#000"/>
+  <path transform="translate(2.4 2.4) scale(1.7)" fill="#fff" fill-rule="evenodd" d="M8 1.25a6.75 6.75 0 1 1 0 13.5 6.75 6.75 0 0 1 0-13.5Zm-.75 3v4.2l2.9 1.75.75-1.25-2.15-1.3V4.25Z"/>
+</svg>
