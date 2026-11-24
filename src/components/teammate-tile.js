@@ -4,12 +4,14 @@ import { cn } from "../lib/utils"
 import { clockParts, describeDayShift, describeOffset, surfaceFor } from "../lib/time"
 import { Avatar } from "./avatar"
 import { ContactHandle, PlatformBadge } from "./contact-handle"
+import { DayMeter } from "./day-meter"
 
 // One teammate. The time is the hero: large light numerals, as World Clock
 // sets a city's time. The platform they prefer to be reached on sits as a
 // badge on their photo, with the handle as the line under their name; role
-// and place are the quiet line below. The surface is the time of day where
-// they are (night, dawn or dusk, day); a moon marks anyone outside working hours.
+// and place are the quiet line below, and under that a bar shows where they are
+// in their own day (day-meter.js). The surface is the time of day where they
+// are (night, dawn or dusk, day); a moon marks anyone outside working hours.
 function TeammateTileBase({ teammate, minutes, offset, dayShift, working, local }) {
   const { digits, period } = clockParts(local)
   const day = describeDayShift(dayShift)
@@ -50,6 +52,8 @@ function TeammateTileBase({ teammate, minutes, offset, dayShift, working, local 
         <p className="min-w-0 truncate">{teammate.role}</p>
         <p className="shrink-0 text-right">{where}</p>
       </div>
+
+      <DayMeter teammate={teammate} minutes={minutes} ground={surface.style.backgroundColor} muted={muted} />
     </li>
   )
 }

@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Moon } from "lucide-react"
 import { teammates } from "../data/teammates"
 import { cn } from "../lib/utils"
 import {
@@ -14,12 +13,15 @@ import {
   surfaceFor,
   useNow,
   viewerPlace,
+  zoneName,
+  zoneOffset,
 } from "../lib/time"
 import { Avatar } from "../components/avatar"
 import { ContactHandle, PlatformBadge } from "../components/contact-handle"
 import { Swap, useThumb } from "../components/motion"
 import { PresenceSummary } from "../components/presence"
 import { TeammateTile } from "../components/teammate-tile"
+import { SkyBanner } from "../components/sky-glyph"
 import WorldMap from "../components/WorldMap"
 
 // Order for the "By role" view.
@@ -44,7 +46,7 @@ const byHierarchy = (a, b) => {
 
 const views = [
   { id: "role", label: "By role" },
-  { id: "time", label: "By local time" },
+  { id: "time", label: "By time zone" },
 ]
 
 // One thumb slides between the options; only its position moves, so a theme
@@ -146,32 +148,37 @@ function Timeline() {
     [now]
   )
 
+
   const sorted = useMemo(() => [...people].sort((a, b) => byHierarchy(a.teammate, b.teammate)), [people])
 
-  // One group per shared clock, earliest local time first. People in
-  // different places with the same offset (Paris, Munich, Warsaw) sit together.
+  // One group per time zone, earliest local time first. People in Paris,
+  // Berlin and Warsaw share Central European Time; South Africa and Bulgaria
+  // have the same clock today but are different zones, so they stay apart.
   const groups = useMemo(() => {
-    const byOffset = new Map()
+    const byZone = new Map()
     people.forEach((person) => {
-      if (!byOffset.has(person.offset)) byOffset.set(person.offset, [])
-      byOffset.get(person.offset).push(person)
+      const name = zoneName(person.teammate.timezone, now)
+      if (!byZone.has(name)) byZone.set(name, [])
+      byZone.get(name).push(person)
     })
-    return [...byOffset.entries()]
-      .sort(([a], [b]) => a - b)
-      .map(([offset, members]) => {
-        const places = [...new Set(members.map((person) => person.teammate.timezoneDisplay))]
-        const day = describeDayShift(members[0].dayShift)
+    return [...byZone.entries()]
+      .map(([name, members]) => {
+        const first = members[0]
+        const day = describeDayShift(first.dayShift)
         return {
-          key: String(offset),
-          clock: clockParts(members[0].local),
-          surface: surfaceFor(members[0].minutes),
+          key: name,
+          name,
+          offset: first.offset,
+          clock: clockParts(first.local),
+          minutes: first.minutes,
+          surface: surfaceFor(first.minutes),
           working: members.some((person) => person.working),
-          places: places.join(", "),
-          relative: [day, describeOffset(offset)].filter(Boolean).join(", "),
-          people: members.sort((a, b) => byName(a.teammate, b.teammate)),
+          detail: [zoneOffset(first.teammate.timezone, now), day, describeOffset(first.offset)].filter(Boolean).join(", "),
+          people: members.sort((x, y) => byName(x.teammate, y.teammate)),
         }
       })
-  }, [people])
+      .sort((x, y) => x.offset - y.offset || x.name.localeCompare(y.name))
+  }, [people, now])
 
   const working = sorted.filter((person) => person.working).map((person) => person.teammate)
   const { headline, detail } = useMemo(() => verdictFor(people, now), [people, now])
@@ -217,66 +224,57 @@ function Timeline() {
               ))}
             </ul>
           ) : (
-            // One row per clock, the way World Clock lists cities.
-            // Wide: the time on the left, everyone who shares it on the right.
-            // Phone: the time and place share the first line, and each person is
-            // a single line under it, so a clock with one person is two lines
-            // tall instead of five.
-            <ul className="space-y-2 sm:space-y-2.5">
-              {groups.map((group) => {
-                const muted = group.surface.dark ? "text-night-muted" : "text-day-muted"
-                return (
-                  <li
-                    key={group.key}
-                    style={group.surface.style}
-                    className={cn(
-                      "flex flex-col gap-x-8 gap-y-2.5 rounded-2xl border border-tile-line px-3.5 py-3 sm:flex-row sm:items-center sm:gap-y-3 sm:px-4 sm:py-3.5",
-                      group.surface.dark ? "text-night-foreground" : "text-day-foreground"
-                    )}
-                  >
-                    <div className="flex shrink-0 items-center justify-between gap-3 sm:block sm:w-[264px]">
-                      <h3 className="flex shrink-0 items-baseline gap-1 leading-none">
-                        <span className="time-numerals text-[34px] font-light tracking-[-0.025em]">
-                          {group.clock.digits}
-                        </span>
-                        {group.clock.period && <span className="text-[13px] font-medium">{group.clock.period}</span>}
+            // One tile per time zone, in a grid, earliest local time first.
+            // Two clearly different parts. The head is that zone's sky right
+            // now, with the zone and its time set over the landscape. The body
+            // is plain: the people in it, each on two lines (name and place,
+            // then handle and role).
+            <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(340px,100%),1fr))] items-start gap-3">
+              {groups.map((group) => (
+                <li key={group.key} className="overflow-hidden rounded-2xl border border-tile-line bg-surface">
+                  <div className="relative h-[112px] text-white">
+                    <SkyBanner minutes={group.minutes} className="absolute inset-0 h-full w-full" />
+                    <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-3">
+                      <div className="min-w-0">
+                        <h3 className="truncate text-[15px] font-semibold leading-tight">{group.name}</h3>
+                        <p className="time-numerals mt-0.5 truncate text-[13px] leading-tight text-white/75">{group.detail}</p>
+                      </div>
+                      <p className="flex shrink-0 items-baseline gap-1 leading-none">
                         {!group.working && (
-                          <Moon aria-hidden="true" size={14} fill="currentColor" className={cn("ml-1 self-center", muted)} />
+                          <span aria-hidden="true" className="mr-1.5 text-[12px] font-medium text-white/75">
+                            off
+                          </span>
                         )}
+                        <span className="time-numerals text-[30px] font-light tracking-[-0.02em]">{group.clock.digits}</span>
+                        {group.clock.period && <span className="text-[13px] font-medium">{group.clock.period}</span>}
                         <span className="sr-only">{group.working ? ", in working hours" : ", off hours"}</span>
-                      </h3>
-                      <p className={cn("min-w-0 text-right text-[13px] leading-snug sm:mt-1.5 sm:text-left", muted)}>
-                        <span className="block truncate sm:inline">{group.places}</span>
-                        <span className="hidden sm:inline">, </span>
-                        <span className="block truncate sm:inline">{group.relative}</span>
                       </p>
                     </div>
-                    <ul className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-3">
-                      {group.people.map(({ teammate }) => (
-                        <li key={teammate.id} className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-                          <span className="relative flex shrink-0">
-                            <Avatar teammate={teammate} size={40} className="max-sm:!h-8 max-sm:!w-8" />
-                            <PlatformBadge
-                              teammate={teammate}
-                              size={18}
-                              className="absolute -bottom-1 -right-1 max-sm:!h-[15px] max-sm:!w-[15px]"
-                            />
-                          </span>
-                          <div className="flex min-w-0 flex-1 items-baseline gap-2 sm:block sm:flex-none">
-                            <h4 translate="no" className="shrink-0 truncate text-[15px] font-semibold leading-tight">
+                  </div>
+                  <ul className="flex min-w-0 flex-col gap-3 px-4 py-3.5">
+                    {group.people.map(({ teammate }) => (
+                      <li key={teammate.id} className="flex min-w-0 items-center gap-3">
+                        <span className="relative flex shrink-0">
+                          <Avatar teammate={teammate} size={36} />
+                          <PlatformBadge teammate={teammate} size={16} className="absolute -bottom-1 -right-1" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-baseline justify-between gap-3">
+                            <h4 translate="no" className="truncate text-[15px] font-semibold leading-tight">
                               {teammate.name}
                             </h4>
-                            <ContactHandle teammate={teammate} className={cn("min-w-0 sm:mt-0.5", muted)} />
-                            <p className={cn("ml-auto shrink-0 truncate text-[13px] sm:ml-0", muted)}>
-                              {teammate.role}
-                            </p>
+                            <p className="shrink-0 text-[13px] leading-tight text-muted-foreground">{teammate.timezoneDisplay}</p>
                           </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                )
-              })}
+                          <div className="mt-0.5 flex items-baseline justify-between gap-3">
+                            <ContactHandle teammate={teammate} className="min-w-0 text-muted-foreground" />
+                            <p className="shrink-0 truncate text-[13px] leading-tight text-muted-foreground">{teammate.role}</p>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
             </ul>
           )}
         </Swap>

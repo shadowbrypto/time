@@ -1,63 +1,43 @@
-import { useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { cn } from "../lib/utils"
-import { Facepile, OVERLAP } from "./avatar"
+import { Facepile } from "./avatar"
 
-const SIZE = 28
-const MAX = 3
+const phoneQuery = "(max-width: 639px)"
 
-// A count with faces. Hover previews everyone; click or Enter keeps it open,
-// which is the only way to see the full group on touch and keyboard.
-//
-// Opening adds faces to the right. The pill's box already has room for them,
-// so its left edge (the dot and the count, where the pointer is) stays put
-// even where the pill sits against the right edge of the page.
+// True on phone-width screens, so the faces can be drawn smaller there.
+function useIsPhone() {
+  const [phone, setPhone] = useState(() => window.matchMedia(phoneQuery).matches)
+  useEffect(() => {
+    const media = window.matchMedia(phoneQuery)
+    const onChange = (event) => setPhone(event.matches)
+    media.addEventListener("change", onChange)
+    return () => media.removeEventListener("change", onChange)
+  }, [])
+  return phone
+}
+
+// A count with everyone's face, always shown in full: nothing to hover or
+// open. Each face names its person in a tooltip. On a phone the faces are
+// smaller so a full team still fits on one line.
 function PresenceGroup({ label, people, working }) {
-  const [hovered, setHovered] = useState(false)
-  const [pinned, setPinned] = useState(false)
-  const [restWidth, setRestWidth] = useState(null)
-  const pillRef = useRef(null)
-  const expanded = hovered || pinned
-
-  // Faces past MAX open in place of the "+N" chip, each adding one step.
-  const extras = Math.max(0, people.length - MAX)
-  const growth = extras > 0 ? (extras - 1) * (SIZE - OVERLAP) : 0
-
-  // The pill's width with the pile closed: everything but the pile, which is
-  // the same open or closed, plus the closed pile. Read at any moment, even
-  // while the pile is opening.
-  const shownSlots = Math.min(people.length, MAX) + (extras > 0 ? 1 : 0)
-  const restPile = shownSlots > 0 ? SIZE + (shownSlots - 1) * (SIZE - OVERLAP) : 0
-  useLayoutEffect(() => {
-    const pill = pillRef.current
-    if (!pill || !pill.lastElementChild) return
-    const others = pill.getBoundingClientRect().width - pill.lastElementChild.getBoundingClientRect().width
-    const width = Math.ceil(others + restPile)
-    setRestWidth((current) => (current === width ? current : width))
-  }, [restPile, people.length, label])
+  const phone = useIsPhone()
 
   if (people.length === 0) return null
 
   return (
-    <div className="flex" style={{ minWidth: restWidth === null ? undefined : restWidth + growth }}>
-      <button
-        ref={pillRef}
-        type="button"
-        aria-expanded={expanded}
-        aria-label={`${people.length} ${label.toLowerCase()}: ${people.map((p) => p.name).join(", ")}`}
-        onClick={() => setPinned((value) => !value)}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        className="flex min-h-[44px] items-center gap-2.5 rounded-full bg-surface py-1.5 pl-3.5 pr-2 text-left"
-      >
-        <span
-          aria-hidden="true"
-          className={cn("h-2 w-2 shrink-0 rounded-full", working ? "bg-positive" : "bg-muted-foreground/50")}
-        />
-        <span className="whitespace-nowrap text-[13px] font-medium">
-          <span className="time-numerals">{people.length}</span> {label.toLowerCase()}
-        </span>
-        <Facepile people={people} max={MAX} showAll={expanded} expandable size={SIZE} />
-      </button>
+    <div
+      role="group"
+      aria-label={`${people.length} ${label.toLowerCase()}: ${people.map((p) => p.name).join(", ")}`}
+      className="flex min-h-[44px] max-w-full items-center gap-2.5 rounded-full bg-surface py-1.5 pl-3.5 pr-2"
+    >
+      <span
+        aria-hidden="true"
+        className={cn("h-2 w-2 shrink-0 rounded-full", working ? "bg-positive" : "bg-muted-foreground/50")}
+      />
+      <span className="whitespace-nowrap text-[13px] font-medium">
+        <span className="time-numerals">{people.length}</span> {label.toLowerCase()}
+      </span>
+      <Facepile people={people} showAll size={phone ? 22 : 28} />
     </div>
   )
 }

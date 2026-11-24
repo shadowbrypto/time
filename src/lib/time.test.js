@@ -1,4 +1,4 @@
-import { daylight, describeDayShift, describeOffset, formatHour, formatHourRange, formatMinuteRange, isWorkingAt, listNames, minutesUntil, shortPlace } from './time';
+import { daylight, describeDayShift, describeOffset, formatHour, formatHourRange, formatMinuteRange, isWorkingAt, listNames, minutesUntil, shortPlace, zoneName, zoneOffset } from './time';
 
 const teammate = { workingHours: { start: '08:00', end: '22:00' } };
 
@@ -79,4 +79,16 @@ test('shortens a city to a few capitals', () => {
   expect(shortPlace('Ho Chi Minh City')).toBe('HCMC');
   expect(shortPlace('Port-au-Prince')).toBe('PAP');
   expect(shortPlace('')).toBe('');
+});
+
+test('names a time zone and its offset', () => {
+  const winter = new Date('2026-11-24T12:00:00Z');
+  const summer = new Date('2026-07-01T12:00:00Z');
+  expect(zoneName('Europe/Paris', winter)).toBe(zoneName('Europe/Warsaw', winter));
+  expect(zoneName('Europe/Paris', winter)).toBe(zoneName('Europe/Paris', summer));
+  expect(zoneName('Africa/Johannesburg', winter)).not.toBe(zoneName('Europe/Sofia', winter));
+  expect(zoneOffset('Europe/Paris', winter)).toBe('UTC+1');
+  expect(zoneOffset('Europe/Paris', summer)).toBe('UTC+2');
+  expect(zoneOffset('Pacific/Honolulu', winter)).toBe('UTC−10');
+  expect(zoneOffset('Europe/London', winter)).toBe('UTC+0');
 });

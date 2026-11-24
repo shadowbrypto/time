@@ -189,6 +189,30 @@ export const describeDayShift = (dayShift) =>
 // Browsers still report a few legacy zone names.
 const cityAliases = { Calcutta: "Kolkata", Saigon: "Ho Chi Minh City", Kiev: "Kyiv", Katmandu: "Kathmandu" }
 
+// A time zone's own name, the same all year: "Central European Time",
+// "Eastern Time". Paris, Berlin and Warsaw share one; Johannesburg and Sofia
+// do not, although their clocks match in winter. English, like the interface.
+const zonePart = (timeZone, style, date) => {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: style }).formatToParts(date)
+    const part = parts.find((item) => item.type === "timeZoneName")
+    return part ? part.value : ""
+  } catch (e) {
+    return ""
+  }
+}
+
+// "Standard" is dropped ("Gulf Time", "Hawaii-Aleutian Time") so every zone
+// reads the same way and long names fit on one line.
+export const zoneName = (timeZone, date) =>
+  (zonePart(timeZone, "longGeneric", date) || timeZone.split("/").pop().replace(/_/g, " ")).replace(" Standard Time", " Time")
+
+// Its offset from UTC right now: "UTC+1", "UTC−10", "UTC+5:30".
+export function zoneOffset(timeZone, date) {
+  const raw = zonePart(timeZone, "shortOffset", date).replace("GMT", "UTC").replace("-", "−")
+  return raw === "UTC" ? "UTC+0" : raw
+}
+
 // A city in a few capitals, for where there is no room for its name:
 // "Berlin" is "BER", "New York" is "NY", "Ho Chi Minh City" is "HCMC".
 export function shortPlace(place) {
